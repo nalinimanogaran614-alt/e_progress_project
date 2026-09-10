@@ -1,0 +1,54 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Edit Student' if student else 'Add Students' %}
+{% set page_heading=title %}
+{% set page_description='Add one student manually or add multiple students through Excel/CSV. Department and class are selected once.' %}
+{% block content %}
+<div class="student-stage-grid">
+  <div class="admin-panel student-form-panel">
+    <div class="student-panel-heading"><div><span class="student-option-label">OPTION A</span><h3>{{ 'Edit Student' if student else 'Single Student Add' }}</h3><p>{{ 'Update the existing student record.' if student else 'Add one student using the existing student fields.' }}</p></div><i class="bi bi-person-plus"></i></div>
+    <form method="post" class="row g-4 p-3 p-md-4">
+      <div class="col-md-6"><label class="form-label student-form-label">Student Name *</label><input class="form-control student-readable-control" name="student_name" required value="{{ student.student_name if student else '' }}"></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Email *</label><input type="email" class="form-control student-readable-control" name="email" required value="{{ student.email if student else '' }}"></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Phone *</label><input class="form-control student-readable-control" name="phone" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" required value="{{ student.phone if student else '' }}"></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Department *</label><select class="form-select student-readable-control" name="department_id" id="student_department" required><option value="">Select Department</option>{% for d in departments %}<option value="{{ d.id }}" {% if student and d.id==student.department_id %}selected{% endif %}>{{ d.department_name }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Academic Batch</label><input class="form-control student-readable-control" id="student_batch" readonly placeholder="Select Department"></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Class / Year *</label><select class="form-select student-readable-control" name="class_id" id="student_class" required><option value="">Select Department first</option>{% for c in classes %}<option value="{{ c.id }}" data-dept="{{ c.department_id }}" {% if student and c.id==student.class_id %}selected{% endif %}>{{ c.class_name }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label student-form-label">Date of Birth *</label><input type="date" class="form-control student-readable-control" name="dob" value="{{ student.dob if student and student.dob else '' }}" required><div class="form-text">Student login password is generated from DOB as DD/MM/YYYY.</div></div>
+      <div class="col-12"><div class="student-auto-note"><i class="bi bi-key-fill"></i><div><strong>Student Login Credentials are automatic.</strong><span>Username = Register Number. Password = Date of Birth in DD/MM/YYYY format. The password is stored securely as a hash.</span></div></div></div>
+      {% if not student %}<div class="col-12"><div class="student-auto-note"><i class="bi bi-magic"></i><div><strong>Register Number is automatic.</strong><span>The system generates the next register number from the selected Department + Class / Year.</span></div></div></div>{% endif %}
+      <div class="col-12 d-flex justify-content-end gap-2"><a href="{{ url_for('students') }}" class="btn btn-light">Cancel</a><button class="btn btn-primary">{{ 'Update Student' if student else 'Add Student' }}</button></div>
+    </form>
+  </div>
+
+  {% if not student %}
+  <div class="admin-panel student-bulk-panel">
+    <div class="student-panel-heading"><div><span class="student-option-label">OPTION B</span><h3>Excel Multiple Student Add</h3><p>Upload any number of students after selecting Department and Class / Year.</p></div><i class="bi bi-file-earmark-spreadsheet"></i></div>
+    <div class="p-3 p-md-4">
+      <div class="student-bulk-flow"><span>1. Department</span><span>2. Class / Year</span><span>3. Download Template</span><span>4. Upload</span><span>5. Preview</span><span>6. Confirm</span></div>
+      <div class="student-bulk-info"><i class="bi bi-info-circle"></i><div><strong>Department and class are selected here.</strong><span>Do not repeat them in Excel. The file needs Register Number, Student Name, Email, Phone and DOB (DD/MM/YYYY).</span></div></div>
+      <div class="row g-3 mt-1">
+        <div class="col-12"><label class="form-label student-form-label">Department *</label><select class="form-select student-readable-control" id="bulk_department"><option value="">Select Department</option>{% for d in departments %}<option value="{{ d.id }}">{{ d.department_name }}</option>{% endfor %}</select></div>
+        <div class="col-md-6"><label class="form-label student-form-label">Academic Batch</label><input class="form-control student-readable-control" id="bulk_batch" readonly placeholder="Select Department"></div>
+        <div class="col-md-6"><label class="form-label student-form-label">Class / Year *</label><select class="form-select student-readable-control" id="bulk_class"><option value="">Select Department first</option>{% for c in classes %}<option value="{{ c.id }}" data-dept="{{ c.department_id }}">{{ c.class_name }}</option>{% endfor %}</select></div>
+      </div>
+      <a class="btn btn-outline-primary mt-4" href="{{ url_for('download_student_template') }}"><i class="bi bi-download"></i> Download Excel Template</a>
+      <form method="post" action="{{ url_for('student_bulk_upload') }}" enctype="multipart/form-data" class="mt-4" id="studentBulkForm">
+        <input type="hidden" name="department_id" id="bulk_department_hidden"><input type="hidden" name="class_id" id="bulk_class_hidden">
+        <label class="form-label student-form-label">Upload Excel / CSV *</label><input class="form-control student-readable-control" type="file" name="student_excel" accept=".xlsx,.csv" required>
+        <div class="form-text">Required columns: Register Number, Student Name, Email, Phone, DOB (DD/MM/YYYY). Invalid rows will be skipped; valid rows can still be added.</div>
+        <button class="btn btn-primary mt-3"><i class="bi bi-cloud-arrow-up"></i> Upload & Preview</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const studentBatchData={{ batches|tojson }}; const studentClasses=[...document.querySelectorAll('#student_class option')]; const dept=document.getElementById('student_department'), cls=document.getElementById('student_class'), batch=document.getElementById('student_batch'); const bdept=document.getElementById('bulk_department'), bcls=document.getElementById('bulk_class'), bbatch=document.getElementById('bulk_batch'), bhd=document.getElementById('bulk_department_hidden'), bhc=document.getElementById('bulk_class_hidden');
+function updateBlock(d,c,b){if(!d)return; const x=studentBatchData.find(v=>String(v.department_id)===String(d)); b.value=x?`${x.start_year}-${x.end_year}`:''; [...c.options].forEach(o=>{if(o.value){o.hidden=String(o.dataset.dept)!==String(d);o.disabled=o.hidden}}); if(c.value && c.options[c.selectedIndex]?.disabled)c.value='';}
+if(dept){dept.addEventListener('change',()=>updateBlock(dept.value,cls,batch)); updateBlock(dept.value,cls,batch);}
+if(bdept){bdept.addEventListener('change',()=>{updateBlock(bdept.value,bcls,bbatch); bhd.value=bdept.value; bhc.value=bcls.value;}); bcls.addEventListener('change',()=>{bhc.value=bcls.value;});}
+const bulkForm=document.getElementById('studentBulkForm'); if(bulkForm) bulkForm.addEventListener('submit',e=>{bhd.value=bdept.value;bhc.value=bcls.value;if(!bhd.value||!bhc.value){e.preventDefault();alert('Select Department and Class / Year before uploading the Excel file.')}});
+</script>
+{% endblock %}

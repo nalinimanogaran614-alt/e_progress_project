@@ -1,0 +1,3173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>E-Progress Card | Student Marks Management System</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+
+        /* =========================================================
+           ROOT
+        ========================================================= */
+
+        :root {
+
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #06b6d4;
+
+            --navy: #0f2742;
+            --navy-dark: #071a2d;
+
+            --text: #18324d;
+            --muted: #64748b;
+
+            --background: #f5f9ff;
+            --white: #ffffff;
+            --border: #e2e8f0;
+
+            --success: #10b981;
+            --purple: #7c3aed;
+
+            --shadow-sm:
+                0 8px 25px rgba(15, 23, 42, 0.06);
+
+            --shadow-md:
+                0 18px 45px rgba(15, 23, 42, 0.10);
+
+            --shadow-lg:
+                0 30px 70px rgba(15, 23, 42, 0.15);
+        }
+
+
+        /* =========================================================
+           GLOBAL
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background:
+                var(--background);
+
+            color:
+                var(--text);
+
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        ::selection {
+            background: var(--primary);
+            color: white;
+        }
+
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
+
+        .main-navbar {
+
+            background:
+                rgba(7, 26, 45, 0.97);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            padding:
+                13px 0;
+
+            box-shadow:
+                0 5px 25px
+                rgba(0, 0, 0, 0.12);
+
+            transition:
+                all 0.3s ease;
+
+            z-index: 9999;
+        }
+
+        .navbar-brand {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                10px;
+
+            color:
+                white !important;
+
+            font-size:
+                21px;
+
+            font-weight:
+                800;
+
+            white-space:
+                nowrap;
+        }
+
+        .brand-icon {
+
+            width:
+                43px;
+
+            height:
+                43px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--secondary)
+                );
+
+            box-shadow:
+                0 8px 25px
+                rgba(37, 99, 235, 0.35);
+
+            animation:
+                brandFloat 3s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes brandFloat {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0);
+            }
+
+            50% {
+                transform:
+                    translateY(-3px);
+            }
+        }
+
+        .navbar-nav {
+            gap: 5px;
+        }
+
+        .nav-link {
+
+            color:
+                #dbeafe !important;
+
+            font-size:
+                14px;
+
+            font-weight:
+                600;
+
+            padding:
+                10px 15px !important;
+
+            position:
+                relative;
+
+            transition:
+                0.25s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+        }
+
+        .nav-link::after {
+
+            content: "";
+
+            position:
+                absolute;
+
+            left:
+                15px;
+
+            right:
+                15px;
+
+            bottom:
+                4px;
+
+            height:
+                2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    var(--primary),
+                    var(--secondary)
+                );
+
+            transform:
+                scaleX(0);
+
+            transition:
+                0.25s ease;
+        }
+
+        .nav-link:hover::after {
+            transform:
+                scaleX(1);
+        }
+
+        .login-nav-btn {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                7px;
+
+            padding:
+                10px 21px;
+
+            border-radius:
+                10px;
+
+            background:
+                white;
+
+            color:
+                var(--navy);
+
+            font-weight:
+                700;
+
+            transition:
+                0.3s ease;
+        }
+
+        .login-nav-btn:hover {
+
+            color:
+                white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--secondary)
+                );
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        /* =========================================================
+           HERO
+        ========================================================= */
+
+        .hero-section {
+
+            min-height:
+                92vh;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            padding:
+                125px 0 75px;
+
+            background:
+
+                radial-gradient(
+                    circle at 82% 22%,
+                    rgba(37, 99, 235, 0.15),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 12% 85%,
+                    rgba(6, 182, 212, 0.11),
+                    transparent 28%
+                ),
+
+                linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #f4f9ff 52%,
+                    #eaf4ff 100%
+                );
+        }
+
+
+        /* Decorative background circles */
+
+        .hero-section::before {
+
+            content: "";
+
+            position:
+                absolute;
+
+            width:
+                500px;
+
+            height:
+                500px;
+
+            border-radius:
+                50%;
+
+            top:
+                -280px;
+
+            right:
+                -120px;
+
+            background:
+                rgba(37, 99, 235, 0.055);
+
+            animation:
+                backgroundFloat
+                10s
+                ease-in-out
+                infinite;
+        }
+
+        .hero-section::after {
+
+            content: "";
+
+            position:
+                absolute;
+
+            width:
+                320px;
+
+            height:
+                320px;
+
+            border-radius:
+                50%;
+
+            bottom:
+                -190px;
+
+            left:
+                -120px;
+
+            background:
+                rgba(6, 182, 212, 0.06);
+
+            animation:
+                backgroundFloat
+                12s
+                ease-in-out
+                infinite
+                reverse;
+        }
+
+        @keyframes backgroundFloat {
+
+            0%,
+            100% {
+                transform:
+                    translate(0, 0);
+            }
+
+            50% {
+                transform:
+                    translate(25px, -20px);
+            }
+        }
+
+
+        /* =========================================================
+           HERO CONTENT
+        ========================================================= */
+
+        .hero-content {
+
+            position:
+                relative;
+
+            z-index:
+                5;
+
+            max-width:
+                650px;
+
+            animation:
+                heroContentIn
+                0.9s
+                ease
+                both;
+        }
+
+        @keyframes heroContentIn {
+
+            from {
+
+                opacity:
+                    0;
+
+                transform:
+                    translateY(35px);
+            }
+
+            to {
+
+                opacity:
+                    1;
+
+                transform:
+                    translateY(0);
+            }
+        }
+
+
+        .hero-badge {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                9px 17px;
+
+            border-radius:
+                50px;
+
+            background:
+                rgba(37, 99, 235, 0.08);
+
+            border:
+                1px solid
+                rgba(37, 99, 235, 0.14);
+
+            color:
+                var(--primary);
+
+            font-size:
+                11px;
+
+            font-weight:
+                800;
+
+            letter-spacing:
+                1px;
+
+            animation:
+                badgePulse
+                3s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                box-shadow:
+                    0 0 0
+                    rgba(37, 99, 235, 0);
+            }
+
+            50% {
+                box-shadow:
+                    0 8px 25px
+                    rgba(37, 99, 235, 0.12);
+            }
+        }
+
+
+        /* =========================================================
+           HERO TITLE
+        ========================================================= */
+
+        .hero-title {
+
+            margin-top:
+                22px;
+
+            font-size:
+                clamp(43px, 5vw, 68px);
+
+            line-height:
+                1.04;
+
+            font-weight:
+                850;
+
+            letter-spacing:
+                -2.5px;
+
+            color:
+                var(--navy);
+        }
+
+        .hero-title span {
+
+            display:
+                block;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #2563eb,
+                    #06b6d4
+                );
+
+            -webkit-background-clip:
+                text;
+
+            -webkit-text-fill-color:
+                transparent;
+
+            background-clip:
+                text;
+        }
+
+
+        .hero-description {
+
+            max-width:
+                590px;
+
+            margin-top:
+                24px;
+
+            color:
+                #64748b;
+
+            font-size:
+                16px;
+
+            line-height:
+                1.8;
+        }
+
+
+        /* =========================================================
+           HERO BUTTONS
+        ========================================================= */
+
+        .hero-buttons {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                14px;
+
+            margin-top:
+                32px;
+        }
+
+        .hero-login-btn {
+
+            border:
+                none;
+
+            padding:
+                13px 27px;
+
+            border-radius:
+                11px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #3b82f6
+                );
+
+            font-weight:
+                700;
+
+            box-shadow:
+                0 12px 28px
+                rgba(37, 99, 235, 0.25);
+
+            transition:
+                transform 0.3s ease,
+                box-shadow 0.3s ease;
+        }
+
+        .hero-login-btn:hover {
+
+            transform:
+                translateY(-4px);
+
+            box-shadow:
+                0 18px 35px
+                rgba(37, 99, 235, 0.32);
+        }
+
+        .hero-explore-btn {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            padding:
+                12px 24px;
+
+            border-radius:
+                11px;
+
+            border:
+                1px solid #cbd5e1;
+
+            background:
+                rgba(255, 255, 255, 0.75);
+
+            color:
+                var(--navy);
+
+            font-weight:
+                650;
+
+            transition:
+                0.3s ease;
+        }
+
+        .hero-explore-btn:hover {
+
+            transform:
+                translateY(-4px);
+
+            background:
+                var(--navy);
+
+            border-color:
+                var(--navy);
+
+            color:
+                white;
+        }
+
+
+        /* =========================================================
+           HERO TRUST
+        ========================================================= */
+
+        .hero-trust {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                18px;
+
+            margin-top:
+                25px;
+
+            color:
+                #64748b;
+
+            font-size:
+                11px;
+
+            font-weight:
+                700;
+        }
+
+        .hero-trust-item {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                6px;
+        }
+
+        .hero-trust-item i {
+            color:
+                var(--success);
+        }
+
+
+        /* =========================================================
+           HERO VISUAL
+           PURE ADVERTISEMENT — NO DATA ANALYSIS
+        ========================================================= */
+
+        .hero-visual {
+
+            position:
+                relative;
+
+            z-index:
+                5;
+
+            min-height:
+                510px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            animation:
+                heroVisualIn
+                1s
+                ease
+                0.15s
+                both;
+        }
+
+        @keyframes heroVisualIn {
+
+            from {
+
+                opacity:
+                    0;
+
+                transform:
+                    translateX(40px);
+            }
+
+            to {
+
+                opacity:
+                    1;
+
+                transform:
+                    translateX(0);
+            }
+        }
+
+
+        .advertisement {
+
+            width:
+                100%;
+
+            max-width:
+                500px;
+
+            height:
+                470px;
+
+            position:
+                relative;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+        }
+
+
+        /* =========================================================
+           ADVERTISEMENT GLOW
+        ========================================================= */
+
+        .ad-glow {
+
+            position:
+                absolute;
+
+            width:
+                390px;
+
+            height:
+                390px;
+
+            border-radius:
+                50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(37, 99, 235, 0.20),
+                    rgba(6, 182, 212, 0.08),
+                    transparent 70%
+                );
+
+            animation:
+                adGlow
+                5s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes adGlow {
+
+            0%,
+            100% {
+
+                transform:
+                    scale(1);
+
+                opacity:
+                    0.8;
+            }
+
+            50% {
+
+                transform:
+                    scale(1.08);
+
+                opacity:
+                    1;
+            }
+        }
+
+
+        /* =========================================================
+           MAIN AD CARD
+        ========================================================= */
+
+        .ad-card {
+
+            position:
+                relative;
+
+            width:
+                310px;
+
+            min-height:
+                350px;
+
+            padding:
+                34px 30px;
+
+            border-radius:
+                30px;
+
+            background:
+                rgba(255, 255, 255, 0.94);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.95);
+
+            box-shadow:
+                0 30px 70px
+                rgba(15, 23, 42, 0.15);
+
+            backdrop-filter:
+                blur(15px);
+
+            text-align:
+                center;
+
+            z-index:
+                5;
+
+            animation:
+                adCardFloat
+                5s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes adCardFloat {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(0)
+                    rotate(0deg);
+            }
+
+            50% {
+
+                transform:
+                    translateY(-10px)
+                    rotate(-1deg);
+            }
+        }
+
+
+        /* =========================================================
+           AD LOGO
+        ========================================================= */
+
+        .ad-logo {
+
+            width:
+                82px;
+
+            height:
+                82px;
+
+            margin:
+                0 auto 22px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                24px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #06b6d4
+                );
+
+            color:
+                white;
+
+            font-size:
+                38px;
+
+            box-shadow:
+                0 18px 35px
+                rgba(37, 99, 235, 0.28);
+
+            animation:
+                logoPulse
+                3s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes logoPulse {
+
+            0%,
+            100% {
+                transform:
+                    scale(1);
+            }
+
+            50% {
+                transform:
+                    scale(1.06);
+            }
+        }
+
+
+        .ad-card h3 {
+
+            color:
+                var(--navy);
+
+            font-size:
+                27px;
+
+            font-weight:
+                850;
+
+            margin-bottom:
+                10px;
+        }
+
+        .ad-card h3 span {
+
+            display:
+                block;
+
+            color:
+                var(--primary);
+        }
+
+        .ad-card p {
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            line-height:
+                1.7;
+
+            margin-bottom:
+                24px;
+        }
+
+
+        /* =========================================================
+           AD BUTTON
+        ========================================================= */
+
+        .ad-button {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                11px 21px;
+
+            border-radius:
+                12px;
+
+            background:
+                var(--navy);
+
+            color:
+                white;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+            transition:
+                0.3s ease;
+        }
+
+        .ad-button:hover {
+
+            color:
+                white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--secondary)
+                );
+
+            transform:
+                translateY(-3px);
+        }
+
+
+        /* =========================================================
+           FLOATING AD ICONS
+        ========================================================= */
+
+        .ad-floating {
+
+            position:
+                absolute;
+
+            width:
+                58px;
+
+            height:
+                58px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                18px;
+
+            background:
+                rgba(255, 255, 255, 0.92);
+
+            box-shadow:
+                0 18px 35px
+                rgba(15, 23, 42, 0.13);
+
+            font-size:
+                23px;
+
+            z-index:
+                8;
+
+            animation:
+                floatingIcon
+                4s
+                ease-in-out
+                infinite;
+        }
+
+        .ad-floating.one {
+
+            top:
+                45px;
+
+            right:
+                40px;
+
+            color:
+                var(--primary);
+        }
+
+        .ad-floating.two {
+
+            bottom:
+                60px;
+
+            left:
+                45px;
+
+            color:
+                var(--success);
+
+            animation-delay:
+                1s;
+        }
+
+        .ad-floating.three {
+
+            top:
+                175px;
+
+            left:
+                20px;
+
+            color:
+                var(--purple);
+
+            animation-delay:
+                1.7s;
+        }
+
+        .ad-floating.four {
+
+            right:
+                15px;
+
+            bottom:
+                105px;
+
+            color:
+                var(--secondary);
+
+            animation-delay:
+                2.3s;
+        }
+
+        @keyframes floatingIcon {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0)
+                    rotate(0deg);
+            }
+
+            50% {
+                transform:
+                    translateY(-10px)
+                    rotate(5deg);
+            }
+        }
+
+
+        /* =========================================================
+           FEATURES
+        ========================================================= */
+
+        .section {
+            padding:
+                100px 0;
+        }
+
+        .features-section {
+            background:
+                white;
+        }
+
+        .section-heading {
+
+            max-width:
+                700px;
+
+            margin:
+                0 auto 55px;
+
+            text-align:
+                center;
+        }
+
+        .section-label {
+
+            display:
+                inline-block;
+
+            margin-bottom:
+                12px;
+
+            color:
+                var(--primary);
+
+            font-size:
+                11px;
+
+            font-weight:
+                850;
+
+            letter-spacing:
+                1.6px;
+        }
+
+        .section-heading h2 {
+
+            margin:
+                0;
+
+            color:
+                var(--navy);
+
+            font-size:
+                clamp(30px, 4vw, 40px);
+
+            font-weight:
+                850;
+
+            letter-spacing:
+                -0.7px;
+        }
+
+        .section-heading p {
+
+            margin-top:
+                15px;
+
+            color:
+                var(--muted);
+
+            line-height:
+                1.75;
+        }
+
+
+        /* =========================================================
+           FEATURE CARD
+        ========================================================= */
+
+        .feature-card {
+
+            height:
+                100%;
+
+            padding:
+                32px;
+
+            border-radius:
+                20px;
+
+            border:
+                1px solid
+                var(--border);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    white,
+                    #fbfdff
+                );
+
+            box-shadow:
+                var(--shadow-sm);
+
+            transition:
+                0.35s ease;
+
+            overflow:
+                hidden;
+
+            position:
+                relative;
+        }
+
+        .feature-card::before {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            width:
+                100px;
+
+            height:
+                100px;
+
+            border-radius:
+                50%;
+
+            right:
+                -45px;
+
+            top:
+                -45px;
+
+            background:
+                rgba(37, 99, 235, 0.05);
+        }
+
+        .feature-card:hover {
+
+            transform:
+                translateY(-9px);
+
+            border-color:
+                rgba(37, 99, 235, 0.28);
+
+            box-shadow:
+                var(--shadow-lg);
+        }
+
+        .feature-icon {
+
+            width:
+                62px;
+
+            height:
+                62px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                17px;
+
+            background:
+                #eaf2ff;
+
+            color:
+                var(--primary);
+
+            font-size:
+                25px;
+
+            margin-bottom:
+                22px;
+
+            transition:
+                0.35s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+
+            transform:
+                scale(1.08)
+                rotate(-5deg);
+        }
+
+        .feature-card h4 {
+
+            color:
+                var(--navy);
+
+            font-weight:
+                800;
+
+            margin-bottom:
+                12px;
+        }
+
+        .feature-card p {
+
+            color:
+                var(--muted);
+
+            line-height:
+                1.7;
+
+            margin:
+                0;
+
+            font-size:
+                14px;
+        }
+
+
+        /* =========================================================
+           USERS
+        ========================================================= */
+
+        .users-section {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #f3f8ff,
+                    #eef9fb
+                );
+        }
+
+        .user-card {
+
+            height:
+                100%;
+
+            padding:
+                36px 28px;
+
+            border-radius:
+                21px;
+
+            background:
+                rgba(255, 255, 255, 0.92);
+
+            border:
+                1px solid
+                var(--border);
+
+            box-shadow:
+                var(--shadow-sm);
+
+            text-align:
+                center;
+
+            transition:
+                0.35s ease;
+        }
+
+        .user-card:hover {
+
+            transform:
+                translateY(-9px);
+
+            box-shadow:
+                var(--shadow-lg);
+
+            border-color:
+                rgba(37, 99, 235, 0.25);
+        }
+
+        .user-icon {
+
+            width:
+                78px;
+
+            height:
+                78px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            margin:
+                0 auto 21px;
+
+            border-radius:
+                50%;
+
+            background:
+                #eaf2ff;
+
+            color:
+                var(--primary);
+
+            font-size:
+                31px;
+
+            transition:
+                0.35s ease;
+        }
+
+        .user-card:hover .user-icon {
+
+            transform:
+                translateY(-5px)
+                rotate(5deg);
+        }
+
+        .user-card h4 {
+
+            color:
+                var(--navy);
+
+            font-weight:
+                800;
+
+            margin-bottom:
+                13px;
+        }
+
+        .user-card p {
+
+            color:
+                var(--muted);
+
+            line-height:
+                1.7;
+
+            margin:
+                0;
+
+            font-size:
+                14px;
+        }
+
+
+        /* =========================================================
+           CONTACT
+        ========================================================= */
+
+        .contact-section {
+            background:
+                white;
+        }
+
+        .contact-box {
+
+            height:
+                100%;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                18px;
+
+            padding:
+                24px;
+
+            border-radius:
+                17px;
+
+            border:
+                1px solid
+                var(--border);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    white,
+                    #f9fbff
+                );
+
+            box-shadow:
+                var(--shadow-sm);
+
+            transition:
+                0.35s ease;
+        }
+
+        .contact-box:hover {
+
+            transform:
+                translateY(-6px);
+
+            box-shadow:
+                var(--shadow-md);
+
+            border-color:
+                rgba(37, 99, 235, 0.28);
+        }
+
+        .contact-icon {
+
+            min-width:
+                55px;
+
+            height:
+                55px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                15px;
+
+            background:
+                #eaf2ff;
+
+            color:
+                var(--primary);
+
+            font-size:
+                22px;
+        }
+
+        .contact-box h5 {
+
+            color:
+                var(--navy);
+
+            font-weight:
+                800;
+
+            margin-bottom:
+                5px;
+        }
+
+        .contact-box p {
+
+            margin:
+                0;
+
+            color:
+                var(--muted);
+
+            font-size:
+                13px;
+
+            word-break:
+                break-word;
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        .footer {
+
+            padding:
+                65px 0 25px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #071a2d,
+                    #102f4a
+                );
+
+            color:
+                white;
+        }
+
+        .developer-card {
+
+            max-width:
+                950px;
+
+            margin:
+                auto;
+
+            padding:
+                30px;
+
+            border-radius:
+                20px;
+
+            background:
+                rgba(255, 255, 255, 0.055);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.12);
+
+            backdrop-filter:
+                blur(10px);
+
+            transition:
+                0.35s ease;
+        }
+
+        .developer-card:hover {
+
+            transform:
+                translateY(-4px);
+
+            box-shadow:
+                0 20px 50px
+                rgba(0, 0, 0, 0.18);
+        }
+
+        .developer-icon {
+
+            width:
+                64px;
+
+            height:
+                64px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(37, 99, 235, 0.35),
+                    rgba(6, 182, 212, 0.25)
+                );
+
+            font-size:
+                27px;
+
+            animation:
+                developerFloat
+                4s
+                ease-in-out
+                infinite;
+        }
+
+        @keyframes developerFloat {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0);
+            }
+
+            50% {
+                transform:
+                    translateY(-5px);
+            }
+        }
+
+        .developer-label {
+
+            color:
+                #93c5fd;
+
+            font-size:
+                10px;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                1.5px;
+
+            font-weight:
+                800;
+        }
+
+        .developer-name {
+
+            margin:
+                5px 0;
+
+            font-size:
+                23px;
+
+            font-weight:
+                850;
+        }
+
+        .developer-info {
+
+            color:
+                #cbd5e1;
+
+            font-size:
+                13px;
+
+            margin-top:
+                6px;
+        }
+
+        .developer-info a {
+
+            color:
+                #dbeafe;
+
+            transition:
+                0.25s ease;
+        }
+
+        .developer-info a:hover {
+            color:
+                white;
+        }
+
+        .footer-line {
+
+            margin:
+                35px 0 20px;
+
+            border-color:
+                rgba(255, 255, 255, 0.12);
+        }
+
+        .copyright {
+
+            margin:
+                0;
+
+            text-align:
+                center;
+
+            color:
+                #94a3b8;
+
+            font-size:
+                11px;
+        }
+
+
+        /* =========================================================
+           SCROLL REVEAL
+        ========================================================= */
+
+        .reveal {
+
+            opacity:
+                0;
+
+            transform:
+                translateY(30px);
+
+            transition:
+                opacity 0.8s ease,
+                transform 0.8s ease;
+        }
+
+        .reveal.active {
+
+            opacity:
+                1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @media (max-width: 991px) {
+
+            .hero-section {
+
+                min-height:
+                    auto;
+
+                padding:
+                    120px 0 70px;
+            }
+
+            .hero-content {
+
+                max-width:
+                    720px;
+
+                margin:
+                    auto;
+
+                text-align:
+                    center;
+            }
+
+            .hero-description {
+
+                margin-left:
+                    auto;
+
+                margin-right:
+                    auto;
+            }
+
+            .hero-buttons {
+
+                justify-content:
+                    center;
+            }
+
+            .hero-trust {
+
+                justify-content:
+                    center;
+            }
+
+            .hero-visual {
+
+                margin-top:
+                    30px;
+            }
+
+            .navbar-nav {
+
+                padding-top:
+                    12px;
+            }
+
+            .login-nav-btn {
+
+                margin-top:
+                    8px;
+
+                width:
+                    fit-content;
+            }
+
+            .advertisement {
+
+                transform:
+                    scale(0.92);
+            }
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media (max-width: 767px) {
+
+            .main-navbar {
+                padding:
+                    10px 0;
+            }
+
+            .navbar-brand {
+                font-size:
+                    18px;
+            }
+
+            .hero-section {
+
+                padding:
+                    110px 0 50px;
+            }
+
+            .hero-title {
+
+                font-size:
+                    43px;
+
+                letter-spacing:
+                    -1.7px;
+            }
+
+            .hero-description {
+
+                font-size:
+                    14px;
+
+                line-height:
+                    1.7;
+            }
+
+            .hero-buttons {
+
+                flex-direction:
+                    column;
+
+                width:
+                    100%;
+            }
+
+            .hero-login-btn,
+            .hero-explore-btn {
+
+                width:
+                    100%;
+
+                justify-content:
+                    center;
+            }
+
+            .hero-trust {
+
+                flex-wrap:
+                    wrap;
+
+                justify-content:
+                    center;
+
+                gap:
+                    10px 16px;
+            }
+
+            .hero-visual {
+
+                min-height:
+                    440px;
+
+                margin-top:
+                    10px;
+            }
+
+            .advertisement {
+
+                width:
+                    440px;
+
+                max-width:
+                    none;
+
+                height:
+                    430px;
+
+                transform:
+                    scale(0.86);
+            }
+
+            .section {
+                padding:
+                    75px 0;
+            }
+
+            .section-heading {
+                margin-bottom:
+                    40px;
+            }
+
+            .developer-card {
+                text-align:
+                    center;
+            }
+
+            .developer-icon {
+
+                margin:
+                    0 auto 18px;
+            }
+        }
+
+
+        /* =========================================================
+           SMALL MOBILE
+        ========================================================= */
+
+        @media (max-width: 480px) {
+
+            .navbar-brand {
+
+                font-size:
+                    16px;
+            }
+
+            .brand-icon {
+
+                width:
+                    37px;
+
+                height:
+                    37px;
+            }
+
+            .hero-title {
+
+                font-size:
+                    37px;
+
+                letter-spacing:
+                    -1.4px;
+            }
+
+            .hero-badge {
+
+                font-size:
+                    8px;
+
+                letter-spacing:
+                    0.8px;
+            }
+
+            .hero-visual {
+
+                min-height:
+                    400px;
+
+                overflow:
+                    visible;
+            }
+
+            .advertisement {
+
+                transform:
+                    scale(0.72);
+            }
+
+            .hero-trust {
+                font-size:
+                    10px;
+            }
+
+            .contact-box {
+
+                padding:
+                    20px;
+            }
+        }
+
+
+        /* =========================================================
+           REDUCED MOTION
+        ========================================================= */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation:
+                    none !important;
+
+                transition:
+                    none !important;
+
+                scroll-behavior:
+                    auto !important;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<nav
+    class="navbar navbar-expand-lg navbar-dark fixed-top main-navbar"
+>
+
+    <div class="container">
+
+        <a
+            href="#home"
+            class="navbar-brand"
+        >
+
+            <span class="brand-icon">
+
+                <i class="bi bi-mortarboard-fill"></i>
+
+            </span>
+
+            E-Progress Card
+
+        </a>
+
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarMenu"
+            aria-controls="navbarMenu"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <div
+            class="collapse navbar-collapse"
+            id="navbarMenu"
+        >
+
+            <ul
+                class="navbar-nav ms-auto align-items-lg-center"
+            >
+
+                <li class="nav-item">
+
+                    <a
+                        href="#home"
+                        class="nav-link"
+                    >
+                        Home
+                    </a>
+
+                </li>
+
+
+                <li class="nav-item">
+
+                    <a
+                        href="#features"
+                        class="nav-link"
+                    >
+                        Features
+                    </a>
+
+                </li>
+
+
+                <li class="nav-item">
+
+                    <a
+                        href="#users"
+                        class="nav-link"
+                    >
+                        Users
+                    </a>
+
+                </li>
+
+
+                <li class="nav-item">
+
+                    <a
+                        href="#contact"
+                        class="nav-link"
+                    >
+                        Contact
+                    </a>
+
+                </li>
+
+
+                <li class="nav-item ms-lg-3">
+
+                    <a
+                        href="{{ url_for('login') }}"
+                        class="login-nav-btn"
+                    >
+
+                        <i class="bi bi-box-arrow-in-right"></i>
+
+                        Login
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section
+    id="home"
+    class="hero-section"
+>
+
+    <div class="container">
+
+        <div class="row align-items-center g-4">
+
+
+            <!-- =================================================
+                 HERO CONTENT
+            ================================================== -->
+
+            <div class="col-lg-7">
+
+                <div class="hero-content">
+
+                    <span class="hero-badge">
+
+                        <i class="bi bi-stars"></i>
+
+                        SMART ACADEMIC MANAGEMENT
+
+                    </span>
+
+
+                    <h1 class="hero-title">
+
+                        E-Progress Card
+
+                        <span>
+                            Student Progress Made Simple.
+                        </span>
+
+                    </h1>
+
+
+                    <p class="hero-description">
+
+                        A simple and secure digital platform
+                        designed to manage student academic
+                        information, marks and progress
+                        efficiently.
+
+                    </p>
+
+
+                    <div class="hero-buttons">
+
+                        <a
+                            href="{{ url_for('login') }}"
+                            class="btn btn-primary hero-login-btn"
+                        >
+
+                            <i
+                                class="bi bi-box-arrow-in-right me-2"
+                            ></i>
+
+                            Login Now
+
+                        </a>
+
+
+                        <a
+                            href="#features"
+                            class="hero-explore-btn"
+                        >
+
+                            <i
+                                class="bi bi-grid-3x3-gap me-2"
+                            ></i>
+
+                            Explore Features
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="hero-trust">
+
+                        <div class="hero-trust-item">
+
+                            <i
+                                class="bi bi-check-circle-fill"
+                            ></i>
+
+                            Easy to Use
+
+                        </div>
+
+
+                        <div class="hero-trust-item">
+
+                            <i
+                                class="bi bi-shield-check"
+                            ></i>
+
+                            Secure
+
+                        </div>
+
+
+                        <div class="hero-trust-item">
+
+                            <i
+                                class="bi bi-lightning-charge-fill"
+                            ></i>
+
+                            Fast & Simple
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ADVERTISEMENT VISUAL
+            ================================================== -->
+
+            <div class="col-lg-5">
+
+                <div class="hero-visual">
+
+                    <div class="advertisement">
+
+
+                        <!-- GLOW -->
+
+                        <div class="ad-glow"></div>
+
+
+                        <!-- MAIN ADVERTISEMENT -->
+
+                        <div class="ad-card">
+
+                            <div class="ad-logo">
+
+                                <i
+                                    class="bi bi-mortarboard-fill"
+                                ></i>
+
+                            </div>
+
+
+                            <h3>
+
+                                E-Progress
+
+                                <span>
+                                    Card
+                                </span>
+
+                            </h3>
+
+
+                            <p>
+
+                                Smart academic management
+                                for modern education.
+
+                            </p>
+
+
+                            <a
+                                href="{{ url_for('login') }}"
+                                class="ad-button"
+                            >
+
+                                Get Started
+
+                                <i
+                                    class="bi bi-arrow-right"
+                                ></i>
+
+                            </a>
+
+                        </div>
+
+
+                        <!-- FLOATING ICON -->
+
+                        <div
+                            class="ad-floating one"
+                        >
+
+                            <i
+                                class="bi bi-book-fill"
+                            ></i>
+
+                        </div>
+
+
+                        <div
+                            class="ad-floating two"
+                        >
+
+                            <i
+                                class="bi bi-check-circle-fill"
+                            ></i>
+
+                        </div>
+
+
+                        <div
+                            class="ad-floating three"
+                        >
+
+                            <i
+                                class="bi bi-person-check-fill"
+                            ></i>
+
+                        </div>
+
+
+                        <div
+                            class="ad-floating four"
+                        >
+
+                            <i
+                                class="bi bi-award-fill"
+                            ></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FEATURES
+========================================================= -->
+
+<section
+    id="features"
+    class="features-section section"
+>
+
+    <div class="container">
+
+
+        <div class="section-heading reveal">
+
+            <span class="section-label">
+                FEATURES
+            </span>
+
+            <h2>
+                Everything You Need in One System
+            </h2>
+
+            <p>
+                Simple and powerful tools for managing
+                student academic information.
+            </p>
+
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <i
+                            class="bi bi-bar-chart-fill"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Marks Management
+                    </h4>
+
+                    <p>
+                        Manage student marks efficiently
+                        through one centralized academic
+                        management system.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <i
+                            class="bi bi-graph-up-arrow"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Progress Tracking
+                    </h4>
+
+                    <p>
+                        Keep academic information organized
+                        and easily monitor student progress.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+
+                        <i
+                            class="bi bi-file-earmark-pdf-fill"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Progress Card PDF
+                    </h4>
+
+                    <p>
+                        Generate professional student
+                        progress cards in a clear and
+                        printable format.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     USERS
+========================================================= -->
+
+<section
+    id="users"
+    class="users-section section"
+>
+
+    <div class="container">
+
+
+        <div class="section-heading reveal">
+
+            <span class="section-label">
+                USER ROLES
+            </span>
+
+            <h2>
+                One System. Three Users.
+            </h2>
+
+            <p>
+                Dedicated access for every academic role.
+            </p>
+
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="user-card">
+
+                    <div class="user-icon">
+
+                        <i
+                            class="bi bi-person-gear"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Admin
+                    </h4>
+
+                    <p>
+                        Manage students, faculty,
+                        departments, subjects, classes
+                        and system information.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="user-card">
+
+                    <div class="user-icon">
+
+                        <i
+                            class="bi bi-person-workspace"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Faculty
+                    </h4>
+
+                    <p>
+                        Manage assigned classes,
+                        subjects and student academic
+                        marks.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+
+                <div class="user-card">
+
+                    <div class="user-icon">
+
+                        <i
+                            class="bi bi-mortarboard-fill"
+                        ></i>
+
+                    </div>
+
+                    <h4>
+                        Student
+                    </h4>
+
+                    <p>
+                        View academic information,
+                        marks and personal progress
+                        card details.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     CONTACT
+========================================================= -->
+
+<section
+    id="contact"
+    class="contact-section section"
+>
+
+    <div class="container">
+
+
+        <div class="section-heading reveal">
+
+            <span class="section-label">
+                CONTACT
+            </span>
+
+            <h2>
+                Get in Touch
+            </h2>
+
+            <p>
+                Contact us for more information about
+                E-Progress Card.
+            </p>
+
+        </div>
+
+
+        <div class="row g-4 justify-content-center">
+
+
+            <div class="col-md-5 reveal">
+
+                <a
+                    href="mailto:kkathambari315@gmail.com"
+                    class="contact-box"
+                >
+
+                    <div class="contact-icon">
+
+                        <i
+                            class="bi bi-envelope-fill"
+                        ></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5>
+                            Email
+                        </h5>
+
+                        <p>
+                            kkathambari315@gmail.com
+                        </p>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+
+            <div class="col-md-5 reveal">
+
+                <a
+                    href="tel:+918925672533"
+                    class="contact-box"
+                >
+
+                    <div class="contact-icon">
+
+                        <i
+                            class="bi bi-telephone-fill"
+                        ></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5>
+                            Phone Number
+                        </h5>
+
+                        <p>
+                            +91 89256 72533
+                        </p>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="footer">
+
+    <div class="container">
+
+
+        <div class="developer-card reveal">
+
+            <div class="row align-items-center g-4">
+
+
+                <div class="col-md-2">
+
+                    <div class="developer-icon">
+
+                        <i
+                            class="bi bi-code-square"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="developer-label">
+                        Project Developer
+                    </div>
+
+                    <div class="developer-name">
+                        Kathambari
+                    </div>
+
+                    <div class="developer-info">
+
+                        <i
+                            class="bi bi-mortarboard-fill me-2"
+                        ></i>
+
+                        B.Sc. Artificial Intelligence
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="developer-info">
+
+                        <i
+                            class="bi bi-envelope-fill me-2"
+                        ></i>
+
+                        <a
+                            href="mailto:kkathambari315@gmail.com"
+                        >
+                            kkathambari315@gmail.com
+                        </a>
+
+                    </div>
+
+
+                    <div class="developer-info">
+
+                        <i
+                            class="bi bi-telephone-fill me-2"
+                        ></i>
+
+                        <a
+                            href="tel:+918925672533"
+                        >
+                            +91 89256 72533
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <hr class="footer-line">
+
+
+        <p class="copyright">
+
+            © 2026 E-Progress Card.
+            All Rights Reserved.
+
+        </p>
+
+
+    </div>
+
+</footer>
+
+
+
+<!-- =========================================================
+     BOOTSTRAP JS
+========================================================= -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+
+<!-- =========================================================
+     SCROLL REVEAL
+========================================================= -->
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const elements =
+                document.querySelectorAll(".reveal");
+
+
+            function revealOnScroll() {
+
+                const windowHeight =
+                    window.innerHeight;
+
+
+                elements.forEach(
+                    function (element) {
+
+                        const elementTop =
+                            element
+                            .getBoundingClientRect()
+                            .top;
+
+
+                        if (
+                            elementTop <
+                            windowHeight - 80
+                        ) {
+
+                            element.classList.add(
+                                "active"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            window.addEventListener(
+                "scroll",
+                revealOnScroll
+            );
+
+
+            revealOnScroll();
+
+        }
+    );
+
+</script>
+
+
+
+<!-- =========================================================
+     NAVBAR SCROLL EFFECT
+========================================================= -->
+
+<script>
+
+    window.addEventListener(
+        "scroll",
+        function () {
+
+            const navbar =
+                document.querySelector(
+                    ".main-navbar"
+                );
+
+
+            if (window.scrollY > 50) {
+
+                navbar.style.padding =
+                    "8px 0";
+
+                navbar.style.background =
+                    "rgba(7, 26, 45, 0.99)";
+
+            } else {
+
+                navbar.style.padding =
+                    "13px 0";
+
+                navbar.style.background =
+                    "rgba(7, 26, 45, 0.97)";
+            }
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>
+

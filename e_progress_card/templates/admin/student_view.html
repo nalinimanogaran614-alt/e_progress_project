@@ -1,0 +1,10 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='View Student' %}{% set page_heading='Student Details' %}{% set page_description='Current student information from the database.' %}
+{% block header_action %}<a href="{{ url_for('edit_student',student_id=student.id) }}" class="btn btn-primary admin-add-btn">Edit Student</a>{% endblock %}
+{% block content %}<div class="admin-panel student-view-panel"><div class="student-view-grid">
+<div><span>Student Name</span><strong>{{ student.student_name }}</strong></div><div><span>Register Number</span><strong>{{ student.register_number }}</strong></div>
+<div><span>Email</span><strong>{{ student.email }}</strong></div><div><span>Phone</span><strong>{{ student.phone }}</strong></div>
+<div><span>Department</span><strong>{{ student.department_name }}</strong></div><div><span>Current Class / Year</span><strong>{{ student.class_name }}</strong></div>
+<div><span>Academic Batch</span><strong>{{ student.academic_batch or '—' }}</strong></div><div><span>Username</span><strong>{{ student.username }}</strong></div>
+<div><span>Date of Birth</span><strong>{{ student.dob or '—' }}</strong></div>
+</div></div>{% endblock %}

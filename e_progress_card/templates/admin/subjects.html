@@ -1,0 +1,33 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Subjects' %}
+{% set page_heading='Subject Master' %}
+{% set page_description='Create and manage subjects here. Assign each subject to a class, faculty, academic year and semester later.' %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/subject_bulk.css') }}">{% endblock %}
+{% block header_action %}<div class="d-flex gap-2 flex-wrap"><a href="{{ url_for('add_subject') }}" class="btn btn-primary admin-add-btn"><i class="bi bi-plus-lg"></i> Add Subject</a><a href="#bulkSubjectPanel" class="btn btn-outline-primary admin-add-btn"><i class="bi bi-file-earmark-spreadsheet"></i> Bulk Add</a></div>{% endblock %}
+{% block content %}
+<div class="subject-master-banner"><div class="banner-icon"><i class="bi bi-book-half"></i></div><div><div class="banner-kicker">SUBJECT MASTER</div><h2>Manage all subjects in one place</h2><p>Excel bulk upload and manual add require only <strong>Subject Code</strong> and <strong>Subject Name</strong>. Assignment is a separate process.</p></div></div>
+
+<div class="subject-stats">
+  <div class="subject-stat"><span class="stat-icon"><i class="bi bi-journal-bookmark"></i></span><div><small>Total Subjects</small><strong>{{ subjects|length }}</strong></div></div>
+  <div class="subject-stat"><span class="stat-icon"><i class="bi bi-link-45deg"></i></span><div><small>Assigned Subjects</small><strong>{{ subjects|selectattr('assignment_count','gt',0)|list|length }}</strong></div></div>
+  <div class="subject-stat"><span class="stat-icon"><i class="bi bi-hourglass-split"></i></span><div><small>Waiting for Assignment</small><strong>{{ subjects|rejectattr('assignment_count','gt',0)|list|length }}</strong></div></div>
+</div>
+
+<div class="admin-panel subject-bulk-panel" id="bulkSubjectPanel">
+  <div class="subject-bulk-panel-head"><div><span class="subject-option-label">BULK SUBJECT MASTER</span><h3>Import Multiple Subjects</h3><p>Upload an Excel/CSV file containing only the two subject master fields.</p></div><i class="bi bi-file-earmark-spreadsheet"></i></div>
+  <div class="subject-bulk-info"><i class="bi bi-info-circle"></i><div><strong>Required Excel columns:</strong><span>Subject Code and Subject Name only.</span><small>No Department • No Class • No Academic Year • No Semester • No Faculty</small></div></div>
+  <form method="post" action="{{ url_for('subject_bulk_upload') }}" enctype="multipart/form-data" class="row g-3 align-items-end" id="subjectBulkForm">
+    <div class="col-lg-8"><label class="form-label">Excel / CSV File *</label><input class="form-control" type="file" name="subject_excel" accept=".xlsx,.csv" required></div>
+    <div class="col-lg-4 d-flex gap-2"><a class="btn btn-outline-primary flex-fill" href="{{ url_for('download_subject_template') }}"><i class="bi bi-download"></i> Template</a><button class="btn btn-primary flex-fill"><i class="bi bi-cloud-arrow-up"></i> Upload & Preview</button></div>
+  </form>
+</div>
+
+<div class="admin-panel mt-4 subject-list-panel">
+  <div class="subject-list-head"><div><h3>Subject List</h3><p>Master records only. Use <strong>Faculty Subject</strong> to assign them.</p></div><span class="master-pill"><i class="bi bi-shield-check"></i> Master Data</span></div>
+  <div class="table-responsive"><table class="table admin-table align-middle subjects-table"><thead><tr><th>S.No</th><th>Subject Code</th><th>Subject Name</th><th>Assignment Status</th><th class="text-end">Action</th></tr></thead><tbody>
+  {% for s in subjects %}<tr><td class="text-muted">{{ loop.index }}</td><td><span class="code-badge">{{ s.subject_code }}</span></td><td><strong>{{ s.subject_name }}</strong></td><td>{% if s.assignment_count and s.assignment_count > 0 %}<span class="status-pill assigned"><i class="bi bi-check-circle-fill"></i> Assigned</span><small class="d-block text-muted mt-1">{{ s.assignment_count }} assignment{{ '' if s.assignment_count == 1 else 's' }}</small>{% else %}<span class="status-pill pending"><i class="bi bi-clock"></i> Not Assigned</span><small class="d-block text-muted mt-1">Ready for Assignment Process</small>{% endif %}</td><td><div class="admin-style-actions d-flex justify-content-end"><a href="{{ url_for('edit_subject',subject_id=s.id) }}" class="action-btn edit"><i class="bi bi-pencil"></i> Edit</a><form class="d-inline" method="post" action="{{ url_for('delete_subject',subject_id=s.id) }}" onsubmit="return confirm('Delete this subject? Existing assignments will also be removed.');"><button class="action-btn delete" type="submit"><i class="bi bi-trash"></i> Delete</button></form></div></td></tr>
+  {% else %}<tr><td colspan="5" class="text-center py-5"><div class="empty-subject"><i class="bi bi-journal-x"></i><h4>No subjects found</h4><p>Add a subject manually or use Bulk Add.</p></div></td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% with failures=session.pop('subject_bulk_failures', []) %}{% if failures %}<div class="admin-panel mt-4"><div class="p-3 border-bottom"><h3 class="mb-1">Skipped Subject Records</h3><p class="text-muted mb-0">These records were not imported.</p></div><div class="table-responsive p-3"><table class="table admin-table"><thead><tr><th>Subject</th><th>Reason</th></tr></thead><tbody>{% for x in failures %}<tr><td>{{ x.name }}</td><td>{{ x.errors|join(', ') }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}{% endwith %}
+{% endblock %}

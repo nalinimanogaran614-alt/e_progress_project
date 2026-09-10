@@ -1,0 +1,12 @@
+{% extends "faculty/base.html" %}{% block title %}Assignment Marks | E-Progress Card{% endblock %}{% block content %}
+<div class="admin-page-header"><div><div class="admin-breadcrumb">My Classes / Assignment</div><h1>Assignment Mark Entry</h1><p>{{ class_info.class_name if class_info else '' }} · {{ subject.subject_code if subject else '' }} — {{ subject.subject_name if subject else '' }}</p></div><div class="status-pill success">Maximum 5 Marks · {{ academic_year.year_name }}</div></div>
+<form method="post"><div class="faculty-panel"><div class="faculty-panel-head"><div><h2>Student-wise Assignment Marks</h2><p>Enter marks from 0 to 5. Existing marks can be corrected and saved again.</p></div><button class="btn btn-primary"><i class="bi bi-save"></i> Save Assignment Marks</button></div><div class="faculty-table-scroll"><table class="faculty-table"><thead><tr><th>S.No</th><th>Register No</th><th>Student</th><th>Assignment /5</th></tr></thead><tbody>{% for st in students %}<tr><td>{{ loop.index }}</td><td class="reg">{{ st.register_number }}</td><td class="primary-name">{{ st.student_name }}</td><td style="max-width:180px"><input class="form-control" name="mark_{{st.id}}" type="number" min="0" max="5" step="0.5" value="{{ st.marks if st.marks is not none else '' }}"></td></tr>{% else %}<tr><td colspan="4" class="faculty-empty">No active students found.</td></tr>{% endfor %}</tbody></table></div></div></form>{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('form')?.addEventListener('submit',function(e){
+  const bad=[...document.querySelectorAll('input[name^="mark_"]')].find(i=>i.value.trim()!=='' && (!Number.isFinite(Number(i.value)) || Number(i.value)<0 || Number(i.value)>5));
+  if(bad){e.preventDefault(); alert('Assignment mark must be between 0 and 5.'); setTimeout(()=>{bad.focus();bad.select();},0);}
+});
+</script>
+{% endblock %}

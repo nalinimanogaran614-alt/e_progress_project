@@ -1,0 +1,23 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Subject Bulk Upload Preview' %}
+{% set page_heading='Bulk Subject Import' %}
+{% set page_description='Review Subject Master records before adding them. Assignment is handled separately.' %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/subject_bulk.css') }}">{% endblock %}
+{% block content %}
+<div class="bulk-preview-wrap">
+  <div class="preview-hero"><div class="preview-hero-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div><div><span class="subject-option-label">SUBJECT MASTER IMPORT</span><h2>Review before adding</h2><p>Only <strong>Subject Code</strong> and <strong>Subject Name</strong> are imported. Assignment happens later.</p></div></div>
+  <div class="subject-bulk-context">
+    <div><span>Total Rows</span><strong>{{ rows|length }}</strong></div>
+    <div><span>Valid</span><strong class="text-success">{{ rows|selectattr('valid')|list|length }}</strong></div>
+    <div><span>Invalid</span><strong class="text-danger">{{ rows|rejectattr('valid')|list|length }}</strong></div>
+    <div><span>Next Step</span><strong>Assignment</strong></div>
+  </div>
+  <div class="admin-panel mt-4">
+    <div class="subject-bulk-preview-head"><div><h3>Import Preview</h3><p>Duplicate subject codes and invalid rows will not be imported.</p></div><span class="subject-bulk-note"><i class="bi bi-link-45deg"></i> Assign later from <strong>Faculty Subject</strong></span></div>
+    <div class="table-responsive"><table class="table admin-table align-middle subject-bulk-table"><thead><tr><th>S.No</th><th>Subject Code</th><th>Subject Name</th><th>Status</th><th>Reason</th></tr></thead><tbody>
+      {% for r in rows %}<tr class="preview-row {% if not r.valid %}table-warning{% endif %}"><td>{{ r.sno }}</td><td><span class="code-badge">{{ r.subject_code }}</span></td><td><strong>{{ r.subject_name }}</strong></td><td>{% if r.valid %}<span class="status-pill assigned"><i class="bi bi-check-circle-fill"></i> Valid</span>{% else %}<span class="status-pill invalid"><i class="bi bi-exclamation-circle-fill"></i> Invalid</span>{% endif %}</td><td>{% if r.errors %}<span class="text-danger small">{{ r.errors|join(', ') }}</span>{% else %}<span class="text-muted small">Ready to import</span>{% endif %}</td></tr>{% else %}<tr><td colspan="5" class="text-center py-5">No rows found.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <div class="subject-bulk-actions"><a href="{{ url_for('subjects') }}" class="btn btn-light px-4">Cancel</a>{% if rows|selectattr('valid')|list|length %}<form method="post" action="{{ url_for('subject_bulk_confirm') }}"><input type="hidden" name="token" value="{{ token }}"><button class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Confirm & Add Subjects</button></form>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,328 @@
+{% extends "faculty/base.html" %}
+{% block title %}View & Edit Marks | E-Progress Card{% endblock %}
+
+{% block extra_css %}
+<style>
+.filter-panel,.marks-panel{background:#fff;border:1px solid #e2e9f2;border-radius:16px;box-shadow:var(--faculty-shadow);overflow:hidden}
+.filter-panel{padding:20px 22px;margin-bottom:18px}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.filter-label{font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:#718397;font-weight:800;margin-bottom:7px}
+.filter-select{height:43px;width:100%;border:1px solid #d7e0e9;border-radius:9px;padding:0 11px;background:#fff;color:#30475e;font-size:12px;font-weight:600}
+.filter-select:focus{outline:none;border-color:#4b83bd;box-shadow:0 0 0 3px rgba(40,101,167,.1)}
+.filter-select:disabled{background:#f5f7fa;color:#a0acb8;cursor:not-allowed}
+.marks-head{padding:18px 22px;border-bottom:1px solid #edf1f5;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.marks-head h2{margin:0;color:#123b78;font-size:17px;font-weight:800}
+.marks-head p{margin:4px 0 0;color:#7b8999;font-size:10px}
+.table-wrap{overflow:auto;scrollbar-width:none}.table-wrap::-webkit-scrollbar{display:none}
+.marks-table{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0}
+.marks-table th{padding:12px 9px;background:#f7f9fc;color:#687c91;font-size:9px;text-transform:uppercase;letter-spacing:.4px;text-align:center;border-bottom:1px solid #e3e9ef;white-space:nowrap}
+.marks-table td{padding:11px 9px;border-bottom:1px solid #edf1f5;font-size:11px;text-align:center;vertical-align:middle}
+.marks-table tbody tr:hover td{background:#fbfdff}
+.student-name{text-align:left!important;color:#123b78;font-size:12px!important;font-weight:800}
+.reg{font-weight:800;color:#2865a7}.auto-cell{background:#fbfdff;color:#123b78;font-weight:800}
+.converted{display:block;font-size:9px;color:#198754;margin-top:2px}.pending{color:#a1acb8}
+.total{font-size:13px;color:#123b78;font-weight:850}.grade{font-size:12px;color:#2865a7;font-weight:850}
+.pass{color:#198754;font-weight:850}.fail{color:#dc3545;font-weight:850}
+.edit-input{width:68px;height:34px;border:1px solid #d7e0e9;border-radius:7px;text-align:center;font-size:11px;font-weight:700}
+.edit-input:focus{outline:none;border-color:#4b83bd;box-shadow:0 0 0 3px rgba(40,101,167,.1)}
+.edit-input.invalid{border-color:#dc3545;background:#fff7f7}
+.edit-actions{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.edit-btn,.update-btn,.cancel-btn{border:0;border-radius:7px;padding:7px 9px;font-size:9px;font-weight:800}
+.edit-btn{background:#edf5ff;color:#2865a7}.update-btn{background:#2865a7;color:#fff}.cancel-btn{background:#f1f3f6;color:#56697d}
+.empty{padding:48px;text-align:center;color:#7b8999;font-size:12px}
+.note{padding:13px 22px;background:#fbfcfe;border-top:1px solid #edf1f5;color:#7b8999;font-size:10px;line-height:1.55}
+.selection-hint{margin-top:10px;font-size:10px;color:#7b8999}
+@media(max-width:1000px){.filter-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.filter-grid{grid-template-columns:1fr}.marks-head{align-items:flex-start;flex-direction:column}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div>
+        <div class="admin-breadcrumb">Faculty / Marks</div>
+        <h1>View & Edit Marks</h1>
+        <p>Select Department → Class → Semester → Subject. Only your active-year assignments are available.</p>
+    </div>
+    <a href="{{ url_for('faculty_marks_entry') }}" class="btn btn-primary">
+        <i class="bi bi-pencil-square me-1"></i> Mark Entry
+    </a>
+</div>
+
+<div class="filter-panel">
+    <div class="filter-grid">
+
+        <div>
+            <div class="filter-label">1. Department</div>
+            <select id="departmentSelect" class="filter-select" onchange="loadDepartment(this.value)">
+                <option value="">Select Assigned Department</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {% if selected_department_id == d.id %}selected{% endif %}>
+                    {{ d.department_name }}{% if d.department_code %} ({{ d.department_code }}){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <div class="filter-label">2. Class</div>
+            <select id="classSelect" class="filter-select" onchange="loadClass(this.value)" {% if not selected_department_id %}disabled{% endif %}>
+                <option value="">Select Class</option>
+                {% for c in classes %}
+                <option value="{{ c.class_id }}" {% if selected_class_id == c.class_id %}selected{% endif %}>
+                    {{ c.class_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <div class="filter-label">3. Semester</div>
+            <select id="semesterSelect" class="filter-select" onchange="loadSemester(this.value)" {% if not selected_class_id %}disabled{% endif %}>
+                <option value="">Select Semester</option>
+                {% for s in semester_options %}
+                <option value="{{ s.semester_no }}" {% if semester_no == s.semester_no %}selected{% endif %}>
+                    Semester {{ s.semester_no }}{% if s.year_no %} · Year {{ s.year_no }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <div class="filter-label">4. Subject</div>
+            <select id="subjectSelect" class="filter-select" onchange="loadSubject(this.value)" {% if not semester_no %}disabled{% endif %}>
+                <option value="">Select Subject</option>
+                {% for s in subjects %}
+                <option value="{{ s.subject_id }}" {% if selected_subject_id == s.subject_id %}selected{% endif %}>
+                    {{ s.subject_code }} - {{ s.subject_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+    </div>
+
+    <div class="selection-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Select the assigned department first. Then the available class, semester and subject will appear step-by-step.
+    </div>
+</div>
+
+<div class="marks-panel">
+    <div class="marks-head">
+        <div>
+            <h2>{% if selected_subject_id %}Student Marks{% else %}Marks Overview{% endif %}</h2>
+            <p>
+                {% if selected_subject_id %}
+                    {{ academic_year.year_name }} · Semester {{ semester_no }} · Active assigned subject
+                {% else %}
+                    Select Department → Class → Semester → Subject.
+                {% endif %}
+            </p>
+        </div>
+        <span class="status-pill success">ACTIVE YEAR ONLY</span>
+    </div>
+
+    {% if not selected_subject_id %}
+    <div class="empty">
+        <i class="bi bi-bar-chart-line fs-3 d-block mb-2"></i>
+        Select Department → Class → Semester → Subject to view marks.
+    </div>
+    {% else %}
+    <div class="table-wrap">
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Register No</th>
+                    <th>Student Name</th>
+                    <th>CIA 1<br><small>/10</small></th>
+                    <th>CIA 2<br><small>/10</small></th>
+                    <th>Assignment<br><small>/5</small></th>
+                    <th>Internal<br><small>/25</small></th>
+                    <th>External<br><small>/75</small></th>
+                    <th>Total<br><small>/100</small></th>
+                    <th>Grade</th>
+                    <th>Result</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for student in students %}
+            {% set complete=student.ca1 is not none and student.ca2 is not none and student.assignment is not none and student.external is not none %}
+            <tr data-student="{{ student.student_id }}"
+                data-ca1="{{ student.ca1 if student.ca1 is not none else '' }}"
+                data-ca2="{{ student.ca2 if student.ca2 is not none else '' }}"
+                data-assignment="{{ student.assignment if student.assignment is not none else '' }}"
+                data-external="{{ student.external if student.external is not none else '' }}">
+                <td>{{ loop.index }}</td>
+                <td class="reg">{{ student.register_number }}</td>
+                <td class="student-name">{{ student.student_name }}</td>
+                <td class="m-ca1 auto-cell">
+                    {% if student.ca1 is not none %}{{ '%.2f'|format(student.ca1/75*10) }}<span class="converted">/10</span>{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-ca2 auto-cell">
+                    {% if student.ca2 is not none %}{{ '%.2f'|format(student.ca2/75*10) }}<span class="converted">/10</span>{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-assignment">
+                    {% if student.assignment is not none %}{{ '%.2f'|format(student.assignment) }}{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-internal auto-cell">
+                    {% if student.internal is not none %}{{ '%.2f'|format(student.internal) }}
+                    {% elif student.ca1 is not none and student.ca2 is not none and student.assignment is not none %}{{ '%.2f'|format(student.ca1/75*10+student.ca2/75*10+student.assignment) }}
+                    {% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-external">
+                    {% if student.external is not none %}{{ '%.2f'|format(student.external) }}{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-total total">
+                    {% if complete %}{{ '%.2f'|format(student.total) }}{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-grade grade">
+                    {% if complete and student.grade %}{{ student.grade }}{% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="m-result">
+                    {% if complete and student.result %}
+                        <span class="{{ 'pass' if student.result=='PASS' else 'fail' }}">{{ student.result }}</span>
+                    {% else %}<span class="pending">—</span>{% endif %}
+                </td>
+                <td class="edit-actions">
+                    {% if complete %}
+                    <button type="button" class="edit-btn" onclick="enableEdit(this)">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    {% else %}
+                    <span class="pending">Mark not entered</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="12" class="empty">No students found for this active class, semester and subject.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="note">
+        <strong>Editing:</strong> CIA 1 and CIA 2 are edited as raw /75 values and displayed as /10.
+        Assignment is /5 and External is /75. Internal /25 and Total /100 are recalculated automatically.
+        Historical academic-year records cannot be entered or edited by Faculty.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function buildUrl(changes){
+    const u=new URL('{{ url_for("faculty_view_marks") }}',window.location.origin);
+    const d=changes.department || document.getElementById('departmentSelect').value;
+    const c=changes.classId || '';
+    const sem=changes.semester || '';
+    const sub=changes.subjectId || '';
+    if(d) u.searchParams.set('department_id',d);
+    if(c) u.searchParams.set('class_id',c);
+    if(sem) u.searchParams.set('semester',sem);
+    if(sub) u.searchParams.set('subject_id',sub);
+    window.location.href=u.toString();
+}
+function loadDepartment(v){
+    if(!v) window.location.href='{{ url_for("faculty_view_marks") }}';
+    else buildUrl({department:v});
+}
+function loadClass(v){
+    const d=document.getElementById('departmentSelect').value;
+    const u=new URL('{{ url_for("faculty_view_marks") }}',window.location.origin);
+    if(d)u.searchParams.set('department_id',d);
+    if(v)u.searchParams.set('class_id',v);
+    window.location.href=u.toString();
+}
+function loadSemester(v){
+    const d=document.getElementById('departmentSelect').value;
+    const c=document.getElementById('classSelect').value;
+    const u=new URL('{{ url_for("faculty_view_marks") }}',window.location.origin);
+    if(d)u.searchParams.set('department_id',d);
+    if(c)u.searchParams.set('class_id',c);
+    if(v)u.searchParams.set('semester',v);
+    window.location.href=u.toString();
+}
+function loadSubject(v){
+    const d=document.getElementById('departmentSelect').value;
+    const c=document.getElementById('classSelect').value;
+    const sem=document.getElementById('semesterSelect').value;
+    const u=new URL('{{ url_for("faculty_view_marks") }}',window.location.origin);
+    if(d)u.searchParams.set('department_id',d);
+    if(c)u.searchParams.set('class_id',c);
+    if(sem)u.searchParams.set('semester',sem);
+    if(v)u.searchParams.set('subject_id',v);
+    window.location.href=u.toString();
+}
+
+const fields=['ca1','ca2','assignment','external'];
+function makeInput(field,value){
+    const max=field==='assignment'?5:75;
+    return '<input class="edit-input" data-edit-field="'+field+'" type="number" min="0" max="'+max+'" step="0.01" value="'+value+'">';
+}
+function updatePreview(row){
+    const get=f=>{const i=row.querySelector('[data-edit-field="'+f+'"]');return i?i.value.trim():''};
+    const a=Number(get('ca1')),b=Number(get('ca2')),as=Number(get('assignment')),ex=Number(get('external'));
+    const ready=get('ca1')!==''&&get('ca2')!==''&&get('assignment')!==''&&[a,b,as].every(Number.isFinite)&&a>=0&&a<=75&&b>=0&&b<=75&&as>=0&&as<=5;
+    const internal=row.querySelector('.m-internal'),total=row.querySelector('.m-total'),grade=row.querySelector('.m-grade'),result=row.querySelector('.m-result');
+    if(!ready){
+        internal.innerHTML='<span class="pending">—</span>';total.innerHTML='<span class="pending">—</span>';
+        grade.innerHTML='<span class="pending">—</span>';result.innerHTML='<span class="pending">—</span>';return;
+    }
+    const iv=a/75*10+b/75*10+as;
+    internal.textContent=iv.toFixed(2);
+    if(get('external')!==''&&Number.isFinite(ex)&&ex>=0&&ex<=75){
+        const t=iv+ex;
+        total.textContent=t.toFixed(2);
+        grade.textContent=t>=90?'A+':t>=80?'A':t>=70?'B+':t>=60?'B':t>=30?'C':'F';
+        result.innerHTML=t>=30?'<span class="pass">PASS</span>':'<span class="fail">FAIL</span>';
+    }else{
+        total.innerHTML='<span class="pending">—</span>';grade.innerHTML='<span class="pending">—</span>';result.innerHTML='<span class="pending">—</span>';
+    }
+}
+function enableEdit(btn){
+    const row=btn.closest('tr');
+    fields.forEach(f=>{
+        const cell=row.querySelector('.m-'+f);
+        cell.innerHTML=makeInput(f,row.dataset[f]);
+    });
+    row.querySelector('.edit-actions').innerHTML='<button type="button" class="update-btn" onclick="updateRow(this)">Save</button><button type="button" class="cancel-btn" onclick="location.reload()">Cancel</button><div class="edit-error"></div>';
+    row.querySelectorAll('.edit-input').forEach(i=>i.addEventListener('input',()=>{validateInput(i);updatePreview(row)}));
+    row.querySelector('[data-edit-field="ca1"]').focus();
+    updatePreview(row);
+}
+function validateInput(i){
+    const max=i.dataset.editField==='assignment'?5:75;
+    const v=i.value.trim();
+    const ok=v!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=max;
+    i.classList.toggle('invalid',!ok);
+    return ok;
+}
+async function updateRow(btn){
+    const row=btn.closest('tr');
+    const inputs=fields.map(f=>row.querySelector('[data-edit-field="'+f+'"]'));
+    if(!inputs.every(validateInput)){
+        row.querySelector('.edit-error').textContent='Enter valid marks within the allowed maximum.';
+        return;
+    }
+    const fd=new FormData();
+    fd.append('student_id',row.dataset.student);
+    fd.append('subject_id','{{ selected_subject_id }}');
+    fd.append('class_id','{{ selected_class_id }}');
+    fd.append('semester','{{ semester_no }}');
+    fields.forEach(f=>fd.append(f,row.querySelector('[data-edit-field="'+f+'"]').value));
+    btn.disabled=true;btn.textContent='Saving...';
+    try{
+        const r=await fetch('{{ url_for("faculty_marks_submit") }}',{method:'POST',body:fd,credentials:'same-origin'});
+        const j=await r.json();
+        if(!r.ok||!j.success)throw new Error(j.message||'Unable to update marks.');
+        location.reload();
+    }catch(e){
+        row.querySelector('.edit-error').textContent=e.message;
+        btn.disabled=false;btn.textContent='Save';
+    }
+}
+</script>
+{% endblock %}

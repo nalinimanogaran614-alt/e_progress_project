@@ -1,0 +1,123 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Edit Department' if department else 'Add Department' %}
+{% set page_heading=title %}
+{% set page_description='Set the course and start year. End year, academic batch and valid year classes are generated automatically.' %}
+{% block content %}
+<div class="admin-form-card department-form-card">
+  <form method="post" class="row g-4" id="departmentForm">
+    <div class="col-12">
+      <label class="form-label">Department / Course Name *</label>
+      <input type="text" name="department_name" id="departmentName" class="form-control"
+             value="{{ department.department_name if department else '' }}"
+             placeholder="Example: BCA or MCA" required autofocus>
+      <div class="form-text">UG/PG is identified automatically from the course name.</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Department Code *</label>
+      <input type="text" name="department_code" id="departmentCode" class="form-control text-uppercase"
+             value="{{ department.department_code if department else '' }}"
+             placeholder="Example: BCA, MCA, AI" maxlength="20" minlength="2"
+             pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,19}" required>
+      <div class="form-text">Enter a unique code. This code is also used while generating student register numbers.</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Program Type</label>
+      <input type="text" id="programType" class="form-control auto-field" value="{{ department.course_type if department else '' }}" readonly>
+      <div class="form-text">Automatically detected.</div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Start Year *</label>
+      <input type="number" name="start_year" id="startYear" class="form-control"
+             value="{{ department.start_year if department else '' }}"
+             min="2000" max="2100" step="1" placeholder="2026" required>
+      <div class="form-text">Enter only the admission/start year.</div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">End Year</label>
+      <input type="text" id="endYear" class="form-control auto-field"
+             value="{{ department.end_year if department else '' }}" readonly>
+      <div class="form-text">Calculated automatically.</div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Academic Batch</label>
+      <input type="text" id="academicBatch" class="form-control auto-field"
+             value="{{ department.academic_batch if department else '' }}" readonly>
+      <div class="form-text">Example: BCA + 2026 → 2026–2029. MCA + 2026 → 2026–2028.</div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">HOD Name *</label>
+      <input type="text" name="hod_name" class="form-control"
+             value="{{ department.hod_name if department else '' }}"
+             placeholder="Enter HOD name" required>
+    </div>
+
+    <div class="col-12">
+      <div class="rule-info">
+        <i class="bi bi-magic"></i>
+        <div>
+          <strong>Automatic academic structure</strong>
+          <span id="yearRuleText">The system creates only the valid year classes for the detected program.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-end gap-2">
+      <a href="{{ url_for('departments') }}" class="btn btn-light">Cancel</a>
+      <button type="submit" class="btn btn-primary">{{ 'Update Department' if department else 'Create Department' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const name = document.getElementById('departmentName');
+  const code = document.getElementById('departmentCode');
+  const start = document.getElementById('startYear');
+  const type = document.getElementById('programType');
+  const end = document.getElementById('endYear');
+  const batch = document.getElementById('academicBatch');
+  const rule = document.getElementById('yearRuleText');
+
+  function detectProgram(course) {
+    const compact = (course || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const pg = ['MCA','MSC','MCOM','MBA','ME','MTECH','MA','MS'];
+    if (pg.some(code => compact.includes(code)) ||
+        /MASTER|POSTGRADUATE|POSTGRADUATE/.test((course || '').toUpperCase())) return 'PG';
+    return 'UG';
+  }
+
+  function updatePreview() {
+    const program = detectProgram(name.value);
+    const startYear = parseInt(start.value, 10);
+    const duration = program === 'PG' ? 2 : 3;
+    type.value = program;
+
+    if (Number.isInteger(startYear) && startYear >= 2000 && startYear <= 2100) {
+      const endYear = startYear + duration;
+      end.value = endYear;
+      batch.value = startYear + '-' + endYear;
+    } else {
+      end.value = '';
+      batch.value = '';
+    }
+
+    rule.textContent = program === 'PG'
+      ? 'PG detected: 1st Year and 2nd Year classes will be available.'
+      : 'UG detected: 1st Year, 2nd Year and 3rd Year classes will be available.';
+  }
+
+  code.addEventListener('input', () => { code.value = code.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 20); });
+  name.addEventListener('input', updatePreview);
+  start.addEventListener('input', updatePreview);
+  updatePreview();
+})();
+</script>
+{% endblock %}

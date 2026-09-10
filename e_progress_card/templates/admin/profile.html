@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Profile | E-Progress Card</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced.css') }}">
+</head>
+<body class="admin-page">
+{% include "_topbar.html" %}
+<div class="admin-layout">
+<aside class="admin-sidebar">
+<div class="sidebar-title">ADMIN PANEL</div>
+<a href="{{ url_for('admin_dashboard') }}" class="admin-side-link"><span>▣</span>Dashboard</a>
+<div class="sidebar-section">ACADEMIC MANAGEMENT</div>
+<a href="{{ url_for('departments') }}" class="admin-side-link"><span>▤</span>Departments</a>
+<a href="{{ url_for('classes') }}" class="admin-side-link"><span>▦</span>Classes</a>
+<a href="{{ url_for('subjects') }}" class="admin-side-link"><span>📚</span>Subjects</a>
+<div class="sidebar-section">USER MANAGEMENT</div>
+<a href="{{ url_for('faculty') }}" class="admin-side-link"><span>👨‍🏫</span>Faculty</a>
+<a href="{{ url_for('students') }}" class="admin-side-link"><span>👨‍🎓</span>Students</a>
+<a href="{{ url_for('assignments') }}" class="admin-side-link"><span>🔗</span>Assignments</a>
+<div class="sidebar-section">RESULT CONTROL</div>
+<a href="{{ url_for('results') }}" class="admin-side-link"><span>📊</span>Results</a>
+<div class="sidebar-section">ACCOUNT</div>
+<a href="{{ url_for('admin_profile') }}" class="admin-side-link active"><span>👤</span>Profile</a>
+<a href="{{ url_for('logout') }}" class="admin-side-link logout-link"><span>🚪</span>Logout</a>
+</aside>
+<main class="admin-main">
+<div class="admin-page-header"><div><span class="admin-breadcrumb">Account</span><h1>Admin Profile</h1><p>Manage your administrator account information.</p></div></div>
+<div class="admin-profile-modern">
+<div class="profile-hero"><div class="profile-avatar-xl">A</div><div><span class="profile-role">SYSTEM ADMINISTRATOR</span><h2>{{ admin.username }}</h2><p>Full access to E-Progress Card management modules</p></div></div>
+<div class="profile-info-grid">
+<div class="profile-info-box"><span>Username</span><strong>{{ admin.username }}</strong></div>
+<div class="profile-info-box"><span>Account Role</span><strong>Administrator</strong></div>
+<div class="profile-info-box"><span>Account ID</span><strong>#{{ admin.id }}</strong></div>
+<div class="profile-info-box"><span>Access Level</span><strong>Full System Access</strong></div>
+</div>
+<div class="profile-note-modern"><i class="bi bi-shield-check"></i><div><strong>Secure administrator account</strong><p>Use the navigation menu to manage departments, classes, faculty, students, subjects, assignments and result publication.</p></div></div>
+</div>
+</main></div>
+</body></html>

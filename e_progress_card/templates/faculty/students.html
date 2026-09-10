@@ -1,0 +1,86 @@
+{% extends "faculty/base.html" %}
+{% block title %}My Students | E-Progress Card{% endblock %}
+
+{% block extra_css %}
+<style>
+.students-head-card{background:#fff;border:1px solid #e3eaf2;border-radius:16px;box-shadow:var(--faculty-shadow);padding:19px 21px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.students-head-title{font-size:17px;font-weight:800;color:#123b78}
+.students-head-meta{font-size:11px;color:#7a8999;margin-top:4px}
+.student-count{padding:7px 10px;background:#eef5fc;color:#2865a7;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.student-name-wrap{display:flex;align-items:center;gap:10px}
+.student-mini-avatar{width:32px;height:32px;border-radius:9px;background:#edf5ff;color:#2865a7;display:grid;place-items:center;font-size:11px;font-weight:800}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div>
+        <span class="admin-breadcrumb">Student Management</span>
+        <h1>My Students</h1>
+        <p>Students belonging to your assigned department and class.</p>
+    </div>
+    <a href="{{ url_for('faculty_add_student') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill"></i> Add Student
+    </a>
+</div>
+
+<div class="students-head-card">
+    <div>
+        <div class="students-head-title">{{ faculty.class_name|default('Assigned Class') }}</div>
+        <div class="students-head-meta">
+            Department: {{ faculty.department_name|default('—') }} · Faculty: {{ faculty.faculty_name|default('—') }}
+        </div>
+    </div>
+    <span class="student-count">
+        <i class="bi bi-people-fill"></i> {{ students|length }} Students
+    </span>
+</div>
+
+<div class="faculty-panel">
+    <div class="faculty-panel-head">
+        <div>
+            <h2>Student Directory</h2>
+            <p>Name, register number, department and class/year.</p>
+        </div>
+    </div>
+
+    <div class="faculty-table-scroll hidden-scroll">
+        <table class="faculty-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Student Name</th>
+                    <th>Register Number</th>
+                    <th>Department</th>
+                    <th>Class (Year)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <div class="student-name-wrap">
+                        <div class="student-mini-avatar">
+                            {{ (student.student_name or 'S')[:1]|upper }}
+                        </div>
+                        <span class="primary-name">{{ student.student_name }}</span>
+                    </div>
+                </td>
+                <td class="reg">{{ student.register_number }}</td>
+                <td>{{ student.department_name|default(faculty.department_name)|default('—') }}</td>
+                <td>{{ student.class_name|default(faculty.class_name)|default('—') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="faculty-empty">
+                    <i class="bi bi-people" style="font-size:28px;display:block;margin-bottom:8px"></i>
+                    No students found in your assigned class.
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

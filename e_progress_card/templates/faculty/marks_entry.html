@@ -1,0 +1,101 @@
+{% extends "faculty/base.html" %}
+{% block title %}Mark Entry | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.entry-hero{background:linear-gradient(135deg,#123b78,#2865a7);color:#fff;border-radius:17px;padding:21px 24px;margin-bottom:14px;box-shadow:var(--faculty-shadow);display:flex;justify-content:space-between;align-items:center;gap:18px}.entry-hero .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:800;opacity:.72}.entry-hero h1{font-size:24px;font-weight:800;margin:4px 0}.entry-hero p{font-size:12px;margin:0;opacity:.86}.completion-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.summary-chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:9px 11px;font-size:10px;font-weight:800;white-space:nowrap}.summary-chip i{margin-right:5px}.entry-help{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #e2e9f2;border-radius:12px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--faculty-shadow);font-size:11px;color:#68798a}.entry-help strong{color:#123b78}.legend{display:flex;gap:12px;flex-wrap:wrap}.legend span{display:inline-flex;align-items:center;gap:5px}.dot{width:8px;height:8px;border-radius:50%;display:inline-block}.dot.done{background:#198754}.dot.wait{background:#f0ad4e}.entry-table-wrap{background:#fff;border:1px solid #e2e9f2;border-radius:16px;box-shadow:var(--faculty-shadow);overflow:hidden}.entry-table{width:100%;border-collapse:collapse;min-width:1180px}.entry-table th{background:#f6f9fc;color:#607287;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:13px 12px;border-bottom:1px solid #e7edf3;white-space:nowrap}.entry-table td{padding:13px 12px;border-bottom:1px solid #edf1f5;vertical-align:middle}.entry-table tr:last-child td{border-bottom:0}.entry-table tr:hover td{background:#fbfdff}.main-text{font-size:13px;font-weight:800;color:#123b78}.sub-text{font-size:10px;color:#7b8999;margin-top:3px}.assessment-cell{min-width:126px;text-align:center}.assess-btn{font-size:11px;font-weight:800;padding:8px 11px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:104px;transition:.16s ease}.assess-btn:hover{transform:translateY(-1px)}.assess-btn.is-complete{background:#198754;border-color:#198754;color:#fff}.assess-btn.is-complete:hover{background:#157347;border-color:#157347;color:#fff}.assess-btn.is-pending{background:#fff}.assessment-status{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px;font-size:9px;font-weight:800;white-space:nowrap}.assessment-status.complete{color:#198754}.assessment-status.pending{color:#b26a00}.assessment-status.empty{color:#7b8999}.assessment-status i{font-size:10px}.progress-mini{height:4px;width:76px;background:#edf1f5;border-radius:99px;margin:5px auto 0;overflow:hidden}.progress-mini span{display:block;height:100%;background:#198754;border-radius:99px}.pending .progress-mini span{background:#f0ad4e}.empty-entry{text-align:center;padding:52px 20px;color:#7b8999;font-size:13px}.status-pill{white-space:nowrap}@media(max-width:900px){.entry-hero{align-items:flex-start;flex-direction:column}.completion-summary{justify-content:flex-start}.entry-help{align-items:flex-start;flex-direction:column}}
+</style>
+<style>
+.entry-table-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: auto !important;
+    -ms-overflow-style: auto !important;
+}
+.entry-table-wrap::-webkit-scrollbar {
+    height: 10px;
+    display: block;
+}
+.entry-table-wrap::-webkit-scrollbar-track {
+    background: #edf2f7;
+    border-radius: 10px;
+}
+.entry-table-wrap::-webkit-scrollbar-thumb {
+    background: #8da8c2;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+{% block content %}
+<section class="entry-hero">
+    <div>
+        <div class="eyebrow">Faculty Workspace</div>
+        <h1>Mark Entry</h1>
+        <p>Enter CIA, Assignment and External marks. Each assessment now shows whether <strong>all students</strong> are completed.</p>
+    </div>
+    <div class="completion-summary">
+        <div class="summary-chip"><i class="bi bi-check2-circle"></i>Green = All students entered</div>
+        <div class="summary-chip"><i class="bi bi-hourglass-split"></i>Amber = Pending</div>
+    </div>
+</section>
+
+<div class="entry-help">
+    <div><strong>Quick status:</strong> Look for <span class="text-success fw-bold">✓ All students</span> below each assessment. A count such as <strong>3/42 entered</strong> means some students are still pending.</div>
+    <div class="legend"><span><i class="dot done"></i>Completed</span><span><i class="dot wait"></i>Pending</span></div>
+</div>
+
+<div class="entry-table-wrap hidden-scroll">
+<table class="entry-table">
+    <thead><tr>
+        <th>S.No</th><th>Department</th><th>Class</th><th>Year</th><th>Semester</th><th>Subject</th><th>CIA 1</th><th>CIA 2</th><th>Assignment</th><th class="external-cell">External</th>
+    </tr></thead>
+    <tbody>
+    {% for row in assignments %}
+    {% set st = row.assessment_status %}
+    <tr>
+        <td><strong>{{ loop.index }}</strong></td>
+        <td><div class="main-text">{{ row.department_code or row.department_name }}</div><div class="sub-text">{{ row.department_name }}</div></td>
+        <td><div class="main-text">{{ row.class_name }}</div></td>
+        <td><span class="status-pill pending">Year {{ row.year_no or '—' }}</span></td>
+        <td><span class="status-pill success">Sem {{ row.semester_no }}</span></td>
+        <td><div class="main-text">{{ row.subject_code }}</div><div class="sub-text">{{ row.subject_name }}</div></td>
+        {% for key, label, endpoint in [
+            ('cia1','CIA 1','faculty_cia1'),
+            ('cia2','CIA 2','faculty_cia2'),
+            ('assignment','Assignment','faculty_assignment'),
+            ('external','External','faculty_external')
+        ] %}
+        {% set a = st.get(key, {}) %}
+        <td class="assessment-cell {{ 'external-cell' if key == 'external' else '' }}">
+            {% if a.get('complete') %}
+            <span class="btn assess-btn is-complete" aria-label="{{ label }} completed">
+                <i class="bi bi-check-lg"></i>{{ label }} Completed
+            </span>
+            {% else %}
+            <a class="btn assess-btn btn-outline-primary is-pending" href="{{ url_for(endpoint,class_id=row.class_id,semester=row.semester_no,subject_id=row.subject_id) }}">
+                <i class="bi bi-pencil-square"></i>{{ label }}
+            </a>
+            {% endif %}
+            <div class="assessment-status {{ a.get('state','pending') }}">
+                <i class="bi {{ a.get('icon','bi-hourglass-split') }}"></i>
+                {% if a.get('complete') %}All students{% elif a.get('total',0) == 0 %}No students{% else %}{{ a.get('entered',0) }}/{{ a.get('total',0) }} entered{% endif %}
+            </div>
+            {% if a.get('total',0) > 0 %}
+            <div class="progress-mini {{ 'pending' if not a.get('complete') else '' }}"><span data-progress-width="{{ ((a.get('entered',0) / a.get('total',1)) * 100)|round(0) }}"></span></div>
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
+    {% else %}
+    <tr><td colspan="10"><div class="empty-entry"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No subject assignments found for the active academic year.</div></td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-progress-width]').forEach(function (bar) {
+    bar.style.width = `${bar.dataset.progressWidth}%`;
+});
+</script>
+{% endblock %}

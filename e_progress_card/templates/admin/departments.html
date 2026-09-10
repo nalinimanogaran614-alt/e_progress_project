@@ -1,0 +1,42 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Departments' %}
+{% set page_heading='Departments' %}
+{% set page_description='Manage courses, program type, academic batches and HOD details.' %}
+{% block header_action %}<a href="{{ url_for('add_department') }}" class="btn btn-primary admin-add-btn"><i class="bi bi-plus-lg"></i> Add Department</a>{% endblock %}
+{% block content %}
+<div class="admin-panel">
+  <div class="table-responsive">
+    <table class="table admin-table align-middle department-table readable-admin-table">
+      <thead>
+        <tr>
+          <th>S.No</th><th>Department / Course</th><th>Program Type</th>
+          <th>Start Year</th><th>End Year</th><th>Academic Batch</th><th>HOD</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for d in departments %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ d.department_name }}</strong><br><span class="code-badge">{{ d.department_code }}</span></td>
+          <td><span class="program-badge {{ 'pg' if d.course_type == 'PG' else 'ug' }}">{{ d.course_type or 'UG' }}</span></td>
+          <td>{{ d.start_year or '—' }}</td>
+          <td>{{ d.end_year or '—' }}</td>
+          <td><span class="batch-badge">{{ (d.course_duration or '—')|replace('-', '–') }}</span></td>
+          <td>{{ d.hod_name }}</td>
+          <td>
+            <div class="admin-style-actions d-flex">
+              <a href="{{ url_for('edit_department', department_id=d.id) }}" class="action-btn edit"><i class="bi bi-pencil"></i> Edit</a>
+              <form class="d-inline" method="post" action="{{ url_for('delete_department', department_id=d.id) }}" onsubmit="return confirm('Delete this department and its generated classes?');">
+                <button class="action-btn delete" type="submit"><i class="bi bi-trash"></i> Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-center py-5">No departments found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

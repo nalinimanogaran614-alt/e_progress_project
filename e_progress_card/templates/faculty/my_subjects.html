@@ -1,0 +1,46 @@
+{% extends "faculty/base.html" %}
+{% block title %}My Subjects | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.subject-panel{background:#fff;border:1px solid #e2e9f2;border-radius:16px;box-shadow:var(--faculty-shadow);overflow:hidden}
+.subject-panel-head{padding:20px 22px;border-bottom:1px solid #edf1f5;display:flex;justify-content:space-between;align-items:center}
+.subject-panel-head h2{margin:0;color:#123b78;font-size:18px;font-weight:800}.subject-panel-head p{margin:4px 0 0;color:#7b8999;font-size:11px}
+.subject-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px}
+.subject-table th{padding:13px 15px;background:#f7f9fc;color:#687c91;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid #e3e9ef;white-space:nowrap}
+.subject-table td{padding:14px 15px;border-bottom:1px solid #edf1f5;color:#41566d;font-size:12px;vertical-align:middle}
+.subject-table tr:last-child td{border-bottom:0}.subject-table tbody tr:hover td{background:#fbfdff}
+.subject-table .subject-name{font-size:13px;font-weight:800;color:#123b78}.subject-code{font-size:11px;font-weight:800;color:#2865a7}
+.detail-pill{display:inline-flex;padding:6px 9px;border-radius:7px;background:#f1f6fc;border:1px solid #dfe9f4;color:#3e6285;font-size:10px;font-weight:800}
+.table-wrap{overflow-x:auto;scrollbar-width:none}.table-wrap::-webkit-scrollbar{display:none}
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+    <div><div class="admin-breadcrumb">Faculty / My Subjects</div><h1>My Subjects</h1><p>Complete subject details for your active academic-year assignments.</p></div>
+    <span class="status-pill success"><i class="bi bi-calendar-check"></i> {{ academic_year.year_name if academic_year else 'No Active Year' }}</span>
+</div>
+<div class="subject-panel">
+    <div class="subject-panel-head"><div><h2><i class="bi bi-book-half me-2"></i>Assigned Subject Details</h2><p>Subject · Code · Department · Year · Academic Batch · Semester</p></div><span class="status-pill success">{{ subjects|length }} Records</span></div>
+    <div class="table-wrap">
+        <table class="subject-table">
+            <thead><tr><th>S.No</th><th>Subject Name</th><th>Subject Code</th><th>Department</th><th>Year</th><th>Academic Batch</th><th>Semester</th><th>Section</th></tr></thead>
+            <tbody>
+            {% for s in subjects %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><div class="subject-name">{{ s.subject_name }}</div></td>
+                <td><span class="subject-code">{{ s.subject_code }}</span></td>
+                <td>{{ s.department_name }}{% if s.department_code %} <small>({{ s.department_code }})</small>{% endif %}</td>
+                <td><span class="detail-pill">Year {{ s.year_no or '—' }}</span></td>
+                <td><span class="detail-pill">{{ s.academic_batch or '—' }}</span></td>
+                <td><span class="detail-pill">Semester {{ s.semester_no }}</span></td>
+                <td>{{ s.section or 'A' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="faculty-empty">No subjects are assigned to you for the active academic year.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

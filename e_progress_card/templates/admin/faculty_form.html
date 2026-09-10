@@ -1,0 +1,109 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Edit Faculty' if faculty else 'Add Faculty' %}
+{% set page_heading=title %}
+{% set page_description='Create a faculty account using faculty details.' %}
+
+{% block content %}
+<div class="faculty-form-shell">
+  <div class="admin-panel faculty-form-card">
+    <div class="faculty-form-hero">
+      <div class="faculty-hero-icon"><i class="bi bi-person-badge"></i></div>
+      <div>
+        <span class="faculty-option-label">FACULTY ACCOUNT</span>
+        <h3>{{ 'Update Faculty Details' if faculty else 'Add New Faculty' }}</h3>
+        <p>Enter the faculty details below.</p>
+      </div>
+    </div>
+
+    <form method="post" class="faculty-form-body">
+      <div class="faculty-form-grid">
+        <div class="faculty-field">
+          <label class="form-label faculty-form-label">Faculty Name <span>*</span></label>
+          <input class="form-control" name="faculty_name" required
+                 value="{{ faculty.faculty_name if faculty else '' }}"
+                 placeholder="Enter full faculty name">
+        </div>
+
+        <div class="faculty-field">
+          <label class="form-label faculty-form-label">Email <span>*</span></label>
+          <input type="email" class="form-control" name="email" required
+                 value="{{ faculty.email if faculty else '' }}"
+                 placeholder="faculty@example.com">
+        </div>
+
+        <div class="faculty-field">
+          <label class="form-label faculty-form-label">Phone <span>*</span></label>
+          <input class="form-control" name="phone" inputmode="numeric" maxlength="10"
+                 pattern="[0-9]{10}" required
+                 value="{{ faculty.phone if faculty else '' }}"
+                 placeholder="10-digit mobile number">
+        </div>
+
+        <div class="faculty-field">
+          <label class="form-label faculty-form-label">Department <span>*</span></label>
+          <select class="form-select" name="department_id" required>
+            <option value="">Select Department</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if faculty and d.id==faculty.department_id %}selected{% endif %}>
+              {{ d.department_name }}{% if d.department_code %} ({{ d.department_code }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="faculty-field">
+          <label class="form-label faculty-form-label">Date of Birth <span>*</span></label>
+          <input type="date" class="form-control" name="dob" required
+                 value="{{ faculty.dob if faculty and faculty.dob else '' }}">
+        </div>
+
+
+      </div>
+
+      <div class="faculty-login-note">
+        <i class="bi bi-key-fill"></i>
+        <div><strong>Automatic Dashboard Login</strong><span>Username = Faculty Name in lowercase without spaces or punctuation (Example: Dr. Suresh Kumar → drsureshkumar). Password = Date of Birth in DD/MM/YYYY format.</span></div>
+      </div>
+
+      <div class="faculty-form-actions">
+        <a href="{{ url_for('faculty') }}" class="btn btn-light">Cancel</a>
+        <button class="btn btn-primary px-4">
+          <i class="bi bi-check2-circle me-1"></i>
+          {{ 'Update Faculty' if faculty else 'Add Faculty' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if not faculty %}
+  <div class="admin-panel faculty-bulk-panel">
+    <div class="faculty-panel-heading">
+      <div>
+        <span class="faculty-option-label">OPTION B</span>
+        <h3>Excel Multiple Faculty Add</h3>
+        <p>Upload multiple faculty records using Excel or CSV.</p>
+      </div>
+      <i class="bi bi-file-earmark-spreadsheet"></i>
+    </div>
+    <div class="p-3 p-md-4">
+      <div class="bulk-flow"><span>1. Download Template</span><span>2. Fill Details</span><span>3. Upload</span><span>4. Preview</span><span>5. Confirm</span></div>
+      <div class="bulk-info-box">
+        <i class="bi bi-info-circle"></i>
+        <div><strong>Simple Excel format</strong><span>Use Faculty Name, Email, Phone, Department and DOB.</span></div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-outline-primary" href="{{ url_for('download_faculty_template') }}">
+          <i class="bi bi-download"></i> Download Excel Template
+        </a>
+      </div>
+      <form method="post" action="{{ url_for('faculty_bulk_upload') }}" enctype="multipart/form-data" class="mt-4">
+        <label class="form-label faculty-form-label">Upload Excel / CSV <span>*</span></label>
+        <input class="form-control" type="file" name="faculty_excel" accept=".xlsx,.csv" required>
+        <div class="form-text faculty-help-text">Required columns: Faculty Name, Email, Phone, Department, DOB.</div>
+        <button class="btn btn-primary mt-3"><i class="bi bi-cloud-arrow-up"></i> Upload & Preview</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

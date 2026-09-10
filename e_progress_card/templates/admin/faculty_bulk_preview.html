@@ -1,0 +1,24 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Faculty Excel Preview' %}
+{% set page_heading='Faculty Excel Preview' %}
+{% set page_description='Review validation results. Nothing is inserted until you click Confirm & Add Faculty.' %}
+{% block content %}
+<div class="admin-panel faculty-preview-panel">
+  <div class="faculty-panel-heading"><div><span class="faculty-option-label">STEP 4</span><h3>Preview & Validate</h3><p>{{ rows|length }} faculty row(s) detected. Valid rows can be added after confirmation.</p></div><i class="bi bi-check2-square"></i></div>
+  <div class="p-3 p-md-4">
+    <div class="preview-summary"><span class="preview-total">Total: {{ rows|length }}</span><span class="preview-valid">Valid: {{ rows|selectattr('valid')|list|length }}</span><span class="preview-invalid">Invalid: {{ rows|rejectattr('valid')|list|length }}</span></div>
+    <div class="table-responsive faculty-table-scroll mt-3">
+      <table class="table admin-table align-middle faculty-preview-table">
+        <thead><tr><th>S.No</th><th>Faculty Name</th><th>Email</th><th>Phone</th><th>Department</th><th>DOB</th><th>Login Rule</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+          <tr><td>{{ r.sno }}</td><td><strong>{{ r.faculty_name or '—' }}</strong></td><td>{{ r.email or '—' }}</td><td>{{ r.phone or '—' }}</td><td>{{ r.department or '—' }}</td><td>{{ r.dob_display or r.dob or '—' }}</td><td><small>Name / DOB</small></td><td>{% if r.valid %}<span class="faculty-status valid">Valid</span>{% else %}<span class="faculty-status invalid">Invalid</span><div class="validation-error">{{ r.errors|join('; ') }}</div>{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="bulk-info-box mt-3"><i class="bi bi-shield-check"></i><div><strong>Safe import</strong><span>Validation checks required fields, email format, 10-digit phone format, automatic faculty-name username, DOB password, existing/duplicate email and phone, and department existence. Only valid rows are inserted after confirmation.</span></div></div>
+    <div class="d-flex flex-wrap justify-content-end gap-2 mt-4"><a href="{{ url_for('add_faculty') }}" class="btn btn-light">Cancel</a>{% if rows|selectattr('valid')|list|length > 0 %}<form method="post" action="{{ url_for('faculty_bulk_confirm') }}" onsubmit="return confirm('Confirm and add all valid faculty records? Invalid records will not be inserted.');"><input type="hidden" name="token" value="{{ token }}"><button class="btn btn-primary"><i class="bi bi-check-circle"></i> Confirm & Add Faculty</button></form>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

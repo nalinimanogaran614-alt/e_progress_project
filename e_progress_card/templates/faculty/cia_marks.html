@@ -1,0 +1,147 @@
+{% extends "faculty/base.html" %}
+{% block title %}{{ page_title }} | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.assess-top,.assess-panel{background:#fff;border:1px solid #e3eaf2;border-radius:16px;box-shadow:var(--faculty-shadow)}
+.assess-top{padding:20px 22px;margin-bottom:18px}.kicker{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:#8291a2;font-weight:800}.assess-top h2{font-size:20px;color:#123b78;font-weight:800;margin:4px 0}.assess-top p{font-size:11px;color:#7b8999;margin:0}
+.controls{display:flex;justify-content:flex-end;gap:9px;align-items:center;flex-wrap:wrap}.subject-select{min-width:300px;height:42px;border:1px solid #d8e1ea;border-radius:9px;padding:0 12px;font-size:12px;font-weight:600;color:#34495e}
+.assess-head{padding:18px 20px;border-bottom:1px solid #e8eef4;display:flex;justify-content:space-between;align-items:center;gap:15px}.assess-head h3{font-size:17px;color:#123b78;font-weight:800;margin:0}.assess-head p{font-size:10px;color:#7b8999;margin:5px 0 0}
+.info-strip{display:flex;gap:9px;flex-wrap:wrap;padding:13px 20px;background:#fbfcfe;border-bottom:1px solid #edf1f5}.chip{padding:7px 10px;border-radius:8px;background:#fff;border:1px solid #e3e9f0;color:#68798a;font-size:9px;font-weight:700}.chip strong{color:#123b78}
+.table-wrap{overflow-x:auto;scrollbar-width:none}.table-wrap::-webkit-scrollbar{display:none}.entry-table{width:100%;min-width:2100px;border-collapse:separate;border-spacing:0}.entry-table th{background:#f7f9fc;color:#60758a;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:.35px;padding:8px 5px;border-bottom:1px solid #e3e9ef;white-space:nowrap}.entry-table th.group-a{background:#eef6ff;color:#245d91}.entry-table th.group-b{background:#f5f1ff;color:#654b91}.entry-table th.group-c{background:#fff5e9;color:#8a5b20}.entry-table th.qhead{font-size:9px;text-transform:none;letter-spacing:0;padding:7px 4px}.entry-table td{padding:8px 5px;border-bottom:1px solid #edf1f5;font-size:11px;text-align:center;vertical-align:middle}.entry-table tr:last-child td{border-bottom:0}.entry-table tr:hover td{background:#fcfdff}.student-name{text-align:left!important;color:#123b78;font-weight:800;min-width:170px}.reg{font-weight:800;color:#2865a7;white-space:nowrap}.mark-input{width:58px;height:33px;border:1px solid #d8e0e8;border-radius:6px;text-align:center;font-size:11px;font-weight:700}.mark-input:focus{outline:none;border-color:#4d86bd;box-shadow:0 0 0 3px rgba(40,101,167,.1)}.mark-input.invalid{border-color:#dc3545;background:#fff7f7}.choice-select{width:64px;height:33px;border:1px solid #d8e0e8;border-radius:6px;font-size:10px;font-weight:800;text-align:center}.choice-select:focus{outline:none;border-color:#4d86bd}.b-cell{display:flex;align-items:center;justify-content:center;gap:4px}.b-label{font-size:8px;color:#6d7e8e;font-weight:800}.raw-total{font-weight:850;color:#123b78;font-size:11px}.converted{display:block;color:#198754;font-size:10px;font-weight:850}.save-btn{border:0;border-radius:7px;padding:8px 10px;background:#2865a7;color:#fff;font-size:11px;font-weight:800}.status{padding:7px 10px;border-radius:999px;background:#edf7f1;color:#198754;font-size:9px;font-weight:800}.status.bad{background:#fff1f2;color:#dc3545}.note{padding:13px 20px;background:#fbfcfe;border-top:1px solid #edf1f5;color:#7b8999;font-size:10px;line-height:1.55}
+.semester-toolbar{display:flex;gap:14px;align-items:center;justify-content:flex-end;background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:10px 14px;margin-bottom:12px}.semester-toolbar span{display:block;font-size:9px;color:#8190a1;text-transform:uppercase;font-weight:800}.semester-toolbar strong{font-size:12px;color:#123b78}.semester-toolbar select{height:36px;border:1px solid #d7e0e9;border-radius:8px;padding:0 10px;font-weight:700;color:#123b78}@media(max-width:700px){.semester-toolbar{justify-content:space-between;flex-wrap:wrap}}
+</style>
+{% endblock %}
+{% block content %}<div class="semester-toolbar"><div><span>Academic Year</span><strong>{{ academic_year.year_name if academic_year else "—" }}</strong></div><div><span>Semester</span><select onchange="changeSemester(this.value)">{% for x in semester_options %}<option value="{{ x.semester_no }}" {% if semester_no == x.semester_no %}selected{% endif %}>Semester {{ x.semester_no }}</option>{% endfor %}</select></div></div>
+<div class="admin-page-header"><div><span class="admin-breadcrumb">Academic Management / CIA</span><h1>{{ page_title }}</h1><p>{{ page_subtitle }}</p></div></div>
+<div class="assess-top"><div class="row align-items-center g-3"><div class="col-lg-6"><div class="kicker">Selected Subject</div><h2>{% if subject %}{{ subject.subject_code }} - {{ subject.subject_name }}{% else %}Select a Subject{% endif %}</h2><p>{{ faculty.department_name|default('—') }} · {{ faculty.class_name|default('—') }}</p></div><div class="col-lg-6"><div class="controls"><select class="subject-select" onchange="changeSubject(this.value)"><option value="">Select Assigned Subject</option>{% for s in subjects %}<option value="{{ s.subject_id }}" {% if selected_subject_id == s.subject_id %}selected{% endif %}>{{ s.subject_code }} - {{ s.subject_name }}</option>{% endfor %}</select><a href="{{ url_for('faculty_dashboard') }}" class="btn btn-light">Dashboard</a></div></div></div></div>
+<div class="assess-panel">
+<div class="assess-head"><div><h3>{{ page_title }} — Section-wise Question Entry</h3><p>Section A: all 10 × 2 marks. Section B: for every 5-mark question pair, select <strong>either A or B</strong> from the dropdown, then enter the mark. Maximum 5. Section C: answer any 3 of 5, maximum 10 each.</p></div><span id="status" class="status">Ready</span></div>
+<div class="info-strip"><span class="chip">A <strong>10 × 2 = 20</strong></span><span class="chip">B <strong>5 pairs × 5 = 25</strong></span><span class="chip">C <strong>Any 3 × 10 = 30</strong></span><span class="chip">Total <strong>/75</strong></span><span class="chip">Converted <strong>/10 AUTO</strong></span></div>
+{% if not selected_subject_id %}<div class="text-center p-5 text-secondary small">Select an assigned subject to begin mark entry.</div>{% else %}
+<div class="table-wrap"><table class="entry-table"><thead>
+<tr><th rowspan="2">S.No</th><th rowspan="2">Register No</th><th rowspan="2" style="min-width:170px">Student</th><th colspan="10" class="group-a">SECTION A — 2 MARK QUESTIONS (20)</th><th colspan="5" class="group-b">SECTION B — A / B CHOICE (25)</th><th colspan="5" class="group-c">SECTION C — ANY 3 OF 5 (30)</th><th rowspan="2">Obtained<br>/75</th><th rowspan="2">Converted<br>/10</th><th rowspan="2">Action</th></tr>
+<tr>{% for i in range(1,11) %}<th class="qhead group-a">Q{{ i }}<br><small>Max 2</small></th>{% endfor %}{% for i in range(1,6) %}<th class="qhead group-b">Q{{ i }}<br><small>Select A/B · Max 5</small></th>{% endfor %}{% for i in range(16,21) %}<th class="qhead group-c">Q{{ i }}<br><small>Max 10</small></th>{% endfor %}</tr>
+</thead><tbody>
+{% for student in students %}
+{% set detail = detail_marks.get(student.student_id|string, {}) %}{% set saved = student.student_id|string in saved_detail_students %}{% set a = detail.get('section_a', []) %}{% set b = detail.get('section_b', []) %}{% set c = detail.get('section_c', []) %}
+<tr data-student="{{ student.student_id }}"><td>{{ loop.index }}</td><td class="reg">{{ student.register_number }}</td><td class="student-name">{{ student.student_name }}</td>
+{% for i in range(10) %}<td><input class="mark-input qa" data-max="2" type="number" min="0" max="2" step="0.01" value="{{ a[i] if a|length > i and a[i] is not none else '' }}" aria-label="Q{{ i+1 }} mark out of 2" {% if saved %}readonly{% endif %}></td>{% endfor %}
+{% for i in range(5) %}{% set pair = b[i] if b|length > i else {} %}{% if pair is mapping %}{% set ch = pair.get('choice','') %}{% set bm = pair.get('mark','') %}{% else %}{% set ch = '' %}{% set bm = pair %}{% endif %}<td><div class="b-cell"><select class="choice-select qb-choice" aria-label="Question {{ i+1 }} choice" {% if saved %}disabled{% endif %}><option value="" {% if not ch %}selected{% endif %}>Select</option><option value="A" {% if ch == 'A' %}selected{% endif %}>A</option><option value="B" {% if ch == 'B' %}selected{% endif %}>B</option></select><input class="mark-input qb-mark" data-max="5" type="number" min="0" max="5" step="0.01" value="{{ bm if bm is not none else '' }}" aria-label="Section B question {{ i+1 }} mark out of 5" {% if saved %}readonly{% endif %}></div></td>{% endfor %}
+{% for i in range(5) %}{% set cv = c[i] if c|length > i else none %}<td><input class="mark-input qc" data-max="10" type="number" min="0" max="10" step="0.01" value="{{ cv if cv is not none else '' }}" aria-label="Section C Q{{ i+16 }} mark out of 10" {% if saved %}readonly{% endif %}></td>{% endfor %}
+<td class="raw-total">—</td><td class="converted">—</td><td>{% if saved %}<span class="saved-pill"><i class="bi bi-check2"></i> Saved</span>{% else %}<button type="button" class="save-btn" onclick="saveRow(this)">Save</button>{% endif %}</td></tr>
+{% else %}<tr><td colspan="26" class="text-center p-5 text-secondary">No students found in your assigned class.</td></tr>{% endfor %}
+</tbody></table></div>
+<div class="note"><strong>Mark limits:</strong> Section A each answer cannot exceed <strong>2</strong>. Section B has <strong>5 A/B pairs</strong>; select exactly one option (A or B) from the dropdown and enter a mark from <strong>0 to 5</strong> for each pair. Section C allows exactly <strong>3 answered questions</strong>, each from <strong>0 to 10</strong>. The maximum CIA is <strong>75</strong>. Converted mark = <strong>(Obtained ÷ 75) × 10</strong>.</div>
+{% endif %}</div>{% endblock %}
+{% block scripts %}
+<script>
+function changeSemester(v){const u=new URL(window.location.href);u.searchParams.set("semester",v);u.searchParams.delete("subject_id");{% if selected_class_id %}u.searchParams.set('class_id','{{ selected_class_id }}');{% endif %}window.location.href=u.toString()}
+
+const subjectId={{ selected_subject_id|default(0) }};const cia="{{ 'cia1' if mark_field == 'ca1' else 'cia2' }}";
+function changeSubject(id){const u=new URL(window.location.href);if(id)u.searchParams.set('subject_id',id);else u.searchParams.delete('subject_id');{% if selected_class_id %}u.searchParams.set('class_id','{{ selected_class_id }}');{% endif %}{% if semester_no %}u.searchParams.set('semester','{{ semester_no }}');{% endif %}window.location.href=u.toString()}
+function setStatus(t,ok=true){const e=document.getElementById('status');if(e){e.textContent=t;e.className='status'+(ok?'':' bad')}}
+function nval(input,max){if(!input||input.value.trim()==='')return null;const n=Number(input.value);return Number.isFinite(n)&&n>=0&&n<=max?n:null}
+function updateTotal(row){const a=[...row.querySelectorAll('.qa')].map(i=>nval(i,2));const b=[...row.querySelectorAll('.qb-mark')].map(i=>nval(i,5));const c=[...row.querySelectorAll('.qc')].map(i=>nval(i,10));const completeA=a.every(v=>v!==null),completeB=b.every(v=>v!==null),cCount=c.filter(v=>v!==null).length;const raw=a.reduce((x,v)=>x+(v??0),0)+b.reduce((x,v)=>x+(v??0),0)+c.reduce((x,v)=>x+(v??0),0);row.querySelector('.raw-total').textContent=(completeA&&completeB&&cCount===3)?raw.toFixed(2)+' / 75':'—';row.querySelector('.converted').textContent=(completeA&&completeB&&cCount===3)?(raw/75*10).toFixed(2)+' / 10':'—';return {a,b,c,cCount,raw,completeA,completeB}}
+
+// Keeps focus on the same field after the user closes the warning.
+function popup(msg,input=null){
+  alert(msg);
+  if(input){
+    setTimeout(()=>{input.focus(); if(input.tagName==='INPUT') input.select();},0);
+  }
+}
+function sectionCCount(row){return [...row.querySelectorAll('.qc')].filter(x=>x.value.trim()!=='').length}
+function focusNext(fields,idx,row){
+  let nextIdx=idx+1;
+  // Once 3 Section C answers exist, every remaining blank Section C field is
+  // optional. Skip them completely and go straight to Save.
+  if(sectionCCount(row)===3){
+    while(nextIdx<fields.length && fields[nextIdx].classList.contains('qc') && fields[nextIdx].value.trim()==='') nextIdx++;
+  }
+  const next=fields[nextIdx];
+  if(next){next.focus();if(next.tagName==='INPUT')next.select();}
+  else saveRow(row.querySelector('.save-btn'));
+}
+function fieldError(input,row){
+  if(input.tagName==='SELECT'){
+    if(!input.value){input.classList.add('invalid');popup('Please select A or B before continuing.',input);return true}
+    return false;
+  }
+  const raw=input.value.trim(),max=Number(input.dataset.max);
+  // Section C: once any 3 are answered, the remaining 2 are optional and may be skipped.
+  if(raw===''){
+    if(input.classList.contains('qc') && sectionCCount(row)===3){input.classList.remove('invalid');return false}
+    input.classList.add('invalid');popup('Enter the mark before moving to the next question.',input);return true;
+  }
+  const value=Number(raw);
+  if(!Number.isFinite(value)||value<0||value>max){
+    input.classList.add('invalid');popup('Maximum mark for this question is '+max+'. Please enter a value between 0 and '+max+'.',input);return true;
+  }
+  if(input.classList.contains('qc') && sectionCCount(row)>3){
+    input.value=''; input.classList.add('invalid');
+    popup('Section C allows only any 3 questions. You already entered 3 answers, so this question must be left blank.',input);
+    updateTotal(row); return true;
+  }
+  input.classList.remove('invalid');return false;
+}
+function keyboardChoice(input,row,e){
+  if(input.tagName!=='SELECT')return false;
+  const key=e.key.toUpperCase();
+  if(key==='A'||key==='B'){
+    e.preventDefault();input.value=key;input.classList.remove('invalid');input.dispatchEvent(new Event('change',{bubbles:true}));
+    const fields=[...row.querySelectorAll('.choice-select,.mark-input')];
+    focusNext(fields,fields.indexOf(input),row);return true;
+  }
+  return false;
+}
+function setupKeyboardRow(row){
+  const fields=[...row.querySelectorAll('.choice-select,.mark-input')];
+  fields.forEach(input=>{
+    input.addEventListener('input',()=>{
+      // Never allow a fourth Section C answer to remain in the form. This
+      // prevents the next-question validation from behaving like all 5 are required.
+      if(input.classList.contains('qc') && input.value.trim()!==''){
+        const others=[...row.querySelectorAll('.qc')].filter(x=>x!==input && x.value.trim()!=='').length;
+        if(others>=3){
+          input.value=''; input.classList.add('invalid');
+          popup('Section C allows any 3 questions only. Three answers are already entered, so the remaining questions are optional.',input);
+          updateTotal(row); return;
+        }
+      }
+      input.classList.remove('invalid');updateTotal(row)
+    });
+    input.addEventListener('change',()=>{input.classList.remove('invalid');updateTotal(row)});
+    input.addEventListener('keydown',e=>{
+      if(keyboardChoice(input,row,e))return;
+      if(e.key!=='Enter' && e.key!=='Tab')return;
+      if(fieldError(input,row)){e.preventDefault();return;}
+      if(e.key==='Enter'){
+        e.preventDefault();focusNext(fields,fields.indexOf(input),row);
+      }
+      // For Tab, allow normal browser navigation when valid. Section C blanks after 3 answers are valid.
+    });
+    // Validate only non-empty values on blur; do not trap focus or re-open warnings.
+    input.addEventListener('blur',()=>{
+      if(input.tagName==='INPUT'&&input.value.trim()!==''){
+        const max=Number(input.dataset.max),v=Number(input.value);
+        if(!Number.isFinite(v)||v<0||v>max){input.classList.add('invalid');}
+        else if(input.classList.contains('qc')&&sectionCCount(row)>3){input.value='';input.classList.add('invalid');updateTotal(row);}
+      }
+    });
+  });
+}
+document.querySelectorAll('tr[data-student]').forEach(row=>{updateTotal(row);setupKeyboardRow(row)});
+
+function validate(row,v){
+  let ok=true;
+  row.querySelectorAll('.qb-choice').forEach(s=>{s.classList.remove('invalid');if(!s.value){s.classList.add('invalid');ok=false}});
+  row.querySelectorAll('.qa,.qb-mark').forEach(i=>{const val=i.value.trim(),max=Number(i.dataset.max);i.classList.remove('invalid');if(val===''||!Number.isFinite(Number(val))||Number(val)<0||Number(val)>max){i.classList.add('invalid');ok=false}});
+  row.querySelectorAll('.qc').forEach(i=>{const val=i.value.trim(),max=Number(i.dataset.max);i.classList.remove('invalid');if(val!==''&&(!Number.isFinite(Number(val))||Number(val)<0||Number(val)>max)){i.classList.add('invalid');ok=false}});
+  if(!ok){setStatus('Check the mark limits and required fields.',false);popup('Check the maximum mark limits and select A or B for every Section B question.');return false}
+  if(!v.completeA){setStatus('Enter all 10 Section A marks (max 2 each).',false);return false}
+  if(!v.completeB){setStatus('For all 5 Section B questions, select A or B and enter a mark up to 5.',false);return false}
+  if(v.cCount!==3){setStatus('Section C requires exactly any 3 of the 5 questions.',false);return false}
+  return true
+}
+async function saveRow(btn){const row=btn.closest('tr'),v=updateTotal(row);if(!validate(row,v))return;const sectionB=[...row.querySelectorAll('.qb-mark')].map((input,i)=>({choice:row.querySelectorAll('.qb-choice')[i].value,mark:Number(input.value)}));const payload={section_a:v.a,section_b:sectionB,section_c:v.c};const fd=new FormData();fd.append('student_id',row.dataset.student);fd.append('subject_id',subjectId);fd.append('cia',cia);fd.append('semester','{{ semester_no|default("") }}');fd.append('question_marks',JSON.stringify(payload));btn.disabled=true;setStatus('Saving...');try{const r=await fetch('{{ url_for("faculty_save_cia_question_marks") }}',{method:'POST',body:fd,credentials:'same-origin'});const j=await r.json();if(!j.success)throw new Error(j.message||'Save failed');btn.textContent='Saved';setStatus('Saved successfully');setTimeout(()=>{btn.textContent='Save';btn.disabled=false},900)}catch(e){alert(e.message);setStatus(e.message,false);btn.disabled=false}}
+</script>{% endblock %}
