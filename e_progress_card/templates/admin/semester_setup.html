@@ -1,0 +1,71 @@
+{% extends "admin/_admin_base.html" %}
+{% set title="Semester" %}
+{% set page_heading="Semester Management" %}
+{% set page_description="Academic year → semester mapping used by the Admin foundation." %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-header">
+        <h3>Academic Year → Semester Mapping</h3>
+        <p>Use the existing class/semester records. The mapping is kept in the compatibility layer without deleting existing data.</p>
+    </div>
+    <div class="p-4">
+        {% for y in years %}
+        <div class="border rounded-3 p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <strong>{{ y.year_name }}</strong>
+                {% if y.is_active %}<span class="badge text-bg-success">ACTIVE</span>{% endif %}
+            </div>
+            <div class="row g-3">
+                {% set ns = namespace(found=false) %}
+                {% for m in mappings if m.academic_year_id == y.id %}
+                    {% set ns.found = true %}
+                    <div class="col-xl-4 col-md-6">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="small text-muted">{{ m.department_name }}</div>
+                            <strong>{{ m.class_name }}</strong>
+                            <div class="mt-2">Semester {{ m.semester_no }} <span class="text-muted">· Section {{ m.section }}</span></div>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% if not ns.found %}<div class="col-12 text-muted small">No class-semester mappings found for this academic year.</div>{% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">No academic years found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="admin-panel mt-4">
+    <div class="admin-panel-header">
+        <h3>Manual Mapping</h3>
+        <p>Use this only when an existing class needs a specific semester mapping.</p>
+    </div>
+    <form method="post" action="{{ url_for('admin_semester_setup_save') }}" class="p-4 row g-3">
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Academic Year</label>
+            <select name="academic_year_id" class="form-select" required>
+                {% for y in years %}<option value="{{ y.id }}" {% if active and y.id == active.id %}selected{% endif %}>{{ y.year_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label fw-bold">Class</label>
+            <select name="class_id" class="form-select" required>
+                {% for c in classes %}<option value="{{ c.id }}">{{ c.department_name }} — {{ c.class_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Semester</label>
+            <select name="semester_no" class="form-select" required>
+                {% for n in range(1,7) %}<option value="{{ n }}">Semester {{ n }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label fw-bold">Section</label>
+            <input name="section" value="A" class="form-control">
+        </div>
+        <div class="col-12 text-end"><button class="btn btn-primary">Save Mapping</button></div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Faculty Profile' %}
+{% set page_heading='Faculty Profile' %}
+{% set page_description='Faculty account and department information.' %}
+{% block header_action %}<a href="{{ url_for('faculty') }}" class="btn btn-primary admin-add-btn"><i class="bi bi-arrow-left"></i> Back to Faculty</a>{% endblock %}
+{% block content %}
+<div class="admin-panel">
+  <div class="student-view-grid">
+    <div><span>Faculty Name</span><strong>{{ faculty.faculty_name or '—' }}</strong></div>
+    <div><span>Username</span><strong>{{ faculty.username or '—' }}</strong></div>
+    <div><span>Email</span><strong>{{ faculty.email or '—' }}</strong></div>
+    <div><span>Phone</span><strong>{{ faculty.phone or '—' }}</strong></div>
+    <div><span>Department</span><strong>{{ faculty.department_name or '—' }}</strong></div>
+    <div><span>Date of Birth</span><strong>{{ faculty.dob or '—' }}</strong></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Students' %}
+{% set page_heading='Students' %}
+{% set page_description='Select a department and academic year to view students in that class.' %}
+{% block header_action %}<a href="{{ url_for('add_student') }}" class="btn btn-primary admin-add-btn"><i class="bi bi-plus-lg"></i> Add Students</a>{% endblock %}
+{% block content %}
+<div class="admin-panel student-filter-panel">
+  <form method="get" class="row g-3 align-items-end p-3 p-md-4" id="studentFilterForm">
+    <div class="col-lg-4 col-md-6">
+      <label class="form-label student-readable-label">Department</label>
+      <select class="form-select student-readable-control" name="department_id" id="filter_department" required>
+        <option value="">Select Department</option>
+        {% for d in departments %}<option value="{{ d.id }}" {% if selected_department|string == d.id|string %}selected{% endif %}>{{ d.department_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <label class="form-label student-readable-label">Academic Year</label>
+      <select class="form-select student-readable-control" name="academic_year" id="filter_year" required>
+        <option value="">Select Academic Year</option>
+        {% for b in batches %}
+          {% if selected_department|string == b.department_id|string %}
+            {% for y in range(b.start_year|int, b.end_year|int) %}
+              <option value="{{ y }}-{{ y+1 }}" {% if selected_academic_year == (y|string ~ '-' ~ (y+1)|string) %}selected{% endif %}>{{ y }}-{{ y+1 }} — {{ (y-b.start_year|int+1) }}{% if (y-b.start_year|int+1)==1 %}st{% elif (y-b.start_year|int+1)==2 %}nd{% else %}rd{% endif %} Year</option>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-3 col-md-10">
+      <label class="form-label student-readable-label">Search</label>
+      <input class="form-control student-readable-control" name="search" value="{{ search }}" placeholder="Register no, name, email...">
+    </div>
+    <div class="col-lg-1 col-md-2 d-grid"><button class="btn btn-primary student-filter-btn"><i class="bi bi-search"></i></button></div>
+  </form>
+</div>
+
+{% if selected_context %}
+<div class="admin-panel student-context-panel mt-4">
+  <div><span>Department</span><strong>{{ departments|selectattr('id','equalto',selected_department|int)|map(attribute='department_name')|first }}</strong></div>
+  <div><span>Academic Year</span><strong>{{ selected_context.academic_year }}</strong></div>
+  <div><span>Current Year</span><strong>{{ selected_context.year_label }}</strong></div>
+  <div><span>Academic Batch</span><strong>{{ selected_context.batch }}</strong></div>
+</div>
+{% endif %}
+
+{% if selected_department and selected_academic_year %}
+<div class="admin-panel student-table-panel mt-4">
+  <div class="student-panel-title"><div><h3>Students</h3><p>{{ students|length }} student(s) in the selected class.</p></div></div>
+  <div class="table-responsive">
+    <table class="table admin-table align-middle student-main-table">
+      <thead><tr><th>S.No</th><th>Register Number</th><th>Student Name</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for s in students %}<tr><td>{{ loop.index }}</td><td><span class="code-badge">{{ s.register_number }}</span></td><td><strong>{{ s.student_name }}</strong></td><td>{{ s.email }}</td><td>{{ s.phone }}</td><td><div class="student-actions"><a class="action-btn view" href="{{ url_for('view_student', student_id=s.id) }}">View</a><a class="action-btn edit" href="{{ url_for('edit_student',student_id=s.id) }}">Edit</a><form method="post" action="{{ url_for('delete_student',student_id=s.id) }}" onsubmit="return confirm('Are you sure you want to delete this student?');"><button class="action-btn delete" type="submit">Delete</button></form></div></td></tr>
+      {% else %}<tr><td colspan="6" class="text-center py-5">No students found for this department and academic year.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="admin-panel student-empty-panel mt-4"><i class="bi bi-funnel"></i><h3>Select Department & Academic Year</h3><p>Choose a department and academic year above. The system will automatically identify the correct year, batch and class.</p></div>
+{% endif %}
+
+{% with failures=session.pop('student_bulk_failures', []) %}{% if failures %}<div class="admin-panel mt-4"><div class="p-3 border-bottom"><h3 class="mb-1">Skipped Student Records</h3><p class="text-muted mb-0">Invalid or duplicate rows were skipped. Correct them later through Edit/Add Students.</p></div><div class="table-responsive p-3"><table class="table admin-table"><thead><tr><th>Student</th><th>Reason</th></tr></thead><tbody>{% for x in failures %}<tr><td>{{ x.name }}</td><td>{{ x.errors|join(', ') }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}{% endwith %}
+{% endblock %}
+{% block scripts %}
+<script>
+const filterDept=document.getElementById('filter_department'), filterYear=document.getElementById('filter_year');
+const batchData={{ batches|tojson }};
+function loadYears(){const d=filterDept.value, old=filterYear.value; filterYear.innerHTML='<option value="">Select Academic Year</option>'; const b=batchData.find(x=>String(x.department_id)===String(d)); if(!b)return; for(let y=Number(b.start_year);y<Number(b.end_year);y++){let n=y-Number(b.start_year)+1; let suffix=n===1?'st':n===2?'nd':'rd'; let o=document.createElement('option');o.value=`${y}-${y+1}`;o.textContent=`${y}-${y+1} — ${n}${suffix} Year`;filterYear.appendChild(o)} if([...filterYear.options].some(o=>o.value===old))filterYear.value=old;}
+filterDept.addEventListener('change',loadYears); loadYears();
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "faculty/base.html" %}
+{% block title %}Faculty Dashboard | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.faculty-welcome{background:linear-gradient(135deg,#123b78,#2865a7);color:#fff;border-radius:18px;padding:24px 28px;margin-bottom:20px;box-shadow:var(--faculty-shadow)}
+.faculty-welcome .eyebrow{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;opacity:.75}.faculty-welcome h1{font-size:27px;font-weight:800;margin:5px 0 4px}.faculty-welcome p{font-size:13px;margin:0;opacity:.86}
+.class-panel{background:#fff;border:1px solid #e2e9f2;border-radius:16px;box-shadow:var(--faculty-shadow);overflow:hidden}.class-head{padding:18px 22px;border-bottom:1px solid #edf1f5;display:flex;justify-content:space-between;align-items:center}.class-head h2{font-size:18px;font-weight:800;color:#123b78;margin:0}.class-head p{font-size:11px;color:#7b8999;margin:4px 0 0}.class-row{padding:18px 22px;border-bottom:1px solid #edf1f5;display:grid;grid-template-columns:50px 1fr 180px;gap:14px;align-items:center}.class-row:last-child{border-bottom:0}.class-row:hover{background:#fbfdff}.class-icon{width:40px;height:40px;border-radius:10px;background:#edf5ff;color:#2865a7;display:grid;place-items:center}.class-name{font-size:16px;font-weight:800;color:#123b78}.class-meta{font-size:11px;color:#718096;margin-top:4px}@media(max-width:700px){.class-row{grid-template-columns:45px 1fr}.class-row .action{grid-column:2}.class-row .btn{width:100%}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="faculty-welcome">
+    <div class="eyebrow">Faculty Workspace</div>
+    <h1>Welcome, {{ faculty.faculty_name }} 👋</h1>
+    <p>{{ faculty.department_name|default('Department') }} · Select a class to see only the subjects assigned to you.</p>
+</section>
+
+<section class="class-panel">
+    <div class="class-head">
+        <div><h2>My Classes</h2><p>Click a class to open its assigned subjects.</p></div>
+        <span class="status-pill success">{{ academic_year.year_name if academic_year else 'No Active Year' }}</span>
+    </div>
+    {% for c in classes %}
+    <div class="class-row">
+        <div class="class-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <div><div class="class-name">{{ c.department_name }} - {{ c.class_name }}</div><div class="class-meta">Department · Assigned class · Active academic year</div></div>
+        <div class="action"><a class="btn btn-primary w-100" href="{{ url_for('faculty_class_subjects', class_id=c.class_id) }}"><i class="bi bi-book me-1"></i> View Subjects</a></div>
+    </div>
+    {% else %}
+    <div class="faculty-empty"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No classes are assigned to you for the active academic year.</div>
+    {% endfor %}
+</section>
+{% endblock %}

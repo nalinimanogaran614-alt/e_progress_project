@@ -1,0 +1,29 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Edit Subject' if subject else 'Add Subject' %}
+{% set page_heading=title %}
+{% set page_description='Manage the Subject Master. Only Subject Code and Subject Name are editable here.' %}
+{% block head %}
+<style>
+.subject-master-card{max-width:850px;margin:0 auto;border:1px solid #e5ebf3;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 12px 35px rgba(18,59,120,.08)}
+.subject-master-card .card-top{padding:24px 28px;background:linear-gradient(135deg,#f4f8fd,#fff);border-bottom:1px solid #e8edf4;display:flex;align-items:center;gap:16px}
+.subject-master-card .icon-box{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:#eaf2ff;color:#123b78;font-size:1.35rem}
+.subject-master-card h3{margin:0;color:#123b78;font-weight:800}.subject-master-card .subtext{margin:4px 0 0;color:#6b7280;font-size:.92rem}
+.subject-master-card .card-body{padding:28px}.subject-master-card label{font-weight:750;color:#24364b;margin-bottom:8px}
+.subject-master-card .form-control{min-height:50px;border-radius:11px;border:1px solid #d9e1ec;padding:.75rem .9rem}.subject-master-card .form-control:focus{border-color:#6d91c4;box-shadow:0 0 0 .2rem rgba(18,59,120,.1)}
+.master-note{display:flex;gap:10px;padding:13px 15px;background:#f7f9fc;border-radius:11px;color:#5b6572;font-size:.88rem}.master-note i{color:#123b78}
+@media(max-width:600px){.subject-master-card .card-top,.subject-master-card .card-body{padding:20px}.subject-master-card .row{gap:4px}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="subject-master-card">
+  <div class="card-top"><div class="icon-box"><i class="bi bi-book"></i></div><div><h3>{{ 'Edit Subject' if subject else 'Add Subject' }}</h3><p class="subtext">Subject Master — assignment is handled separately.</p></div></div>
+  <div class="card-body">
+    <div class="master-note mb-4"><i class="bi bi-info-circle"></i><span>Only <strong>Subject Code</strong> and <strong>Subject Name</strong> are maintained here. Class, faculty, academic year and semester are selected later in the Assignment Process.</span></div>
+    <form method="post" class="row g-4">
+      <div class="col-md-5"><label class="form-label">Subject Code *</label><input class="form-control" name="subject_code" maxlength="50" required value="{{ subject.subject_code if subject else '' }}" placeholder="e.g. MCA101"></div>
+      <div class="col-md-7"><label class="form-label">Subject Name *</label><input class="form-control" name="subject_name" maxlength="150" required value="{{ subject.subject_name if subject else '' }}" placeholder="e.g. Python Programming"></div>
+      <div class="col-12 d-flex justify-content-end gap-2 pt-2"><a href="{{ url_for('subjects') }}" class="btn btn-light px-4">Cancel</a><button class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i>{{ 'Update Subject' if subject else 'Add Subject' }}</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

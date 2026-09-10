@@ -1,0 +1,24 @@
+<nav class="ep-global-navbar">
+    <div class="ep-brand">
+        <span class="ep-brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+        <span>E-PROGRESS CARD</span>
+    </div>
+    <div class="ep-nav-user">
+        {% if session.get('role') == 'admin' %}
+            <a class="ep-user-link" href="{{ url_for('admin_profile') }}">
+                <span class="ep-avatar">A</span><span class="ep-user-name">{{ session.get('username','Admin') }}</span>
+            </a>
+        {% elif session.get('role') == 'faculty' %}
+            <a class="ep-user-link" href="{{ url_for('faculty_profile') }}">
+                <span class="ep-avatar">{{ (faculty.faculty_name|default(session.get('username','F')) or 'F')[:1]|upper }}</span><span class="ep-user-name">{{ faculty.faculty_name|default(session.get('username','Faculty')) }}</span>
+            </a>
+        {% else %}
+            <a class="ep-user-link" href="{{ url_for('student_profile') }}">
+                <span class="ep-avatar">{{ (student.student_name|default(session.get('username','S')) or 'S')[:1]|upper }}</span><span class="ep-user-name">{{ student.student_name|default(session.get('username','Student')) }}</span>
+            </a>
+        {% endif %}
+        <a class="ep-logout" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+</nav>
+<div class="ep-date-strip" aria-label="Current date"><i class="bi bi-calendar3"></i><span id="epDateText">Loading date…</span></div>
+<script src="{{ url_for('static', filename='js/global-ui.js') }}"></script>

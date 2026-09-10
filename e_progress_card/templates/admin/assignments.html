@@ -1,0 +1,375 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Faculty Subject Assignments' %}
+{% set page_heading='Faculty Subject Assignments' %}
+{% set page_description='Assign Subject Master records to faculty for the exact class, academic year and semester.' %}
+<style>
+.fsa-repeat-rule{display:inline-block;margin-left:8px;color:#b45309;font-style:normal;font-weight:800}
+.fsa-subject-option.is-repeat-blocked{background:#fffaf0!important;border-color:#f3d49b!important}
+</style>
+
+{% block content %}
+<div class="fsa-page">
+  <div class="fsa-hero">
+    <div class="fsa-hero-icon"><i class="bi bi-person-workspace"></i></div>
+    <div class="fsa-hero-copy">
+      <span>ADMIN · ASSIGNMENT MANAGEMENT</span>
+      <h1>Faculty Subject Assignments</h1>
+      <p>One faculty per row. View all assignments or manage multiple subjects in one place.</p>
+    </div>
+    <div class="fsa-hero-stats">
+      <div><strong>{{ faculties|length }}</strong><span>Faculty</span></div>
+      <div><strong>{{ assignments_by_faculty.values()|map('length')|sum }}</strong><span>Assignments</span></div>
+      <div><strong>{{ subjects|length }}</strong><span>Subjects</span></div>
+    </div>
+  </div>
+
+  <div class="fsa-toolbar admin-panel">
+    <div class="fsa-search-wrap">
+      <i class="bi bi-search"></i>
+      <input id="facultySearch" type="search" class="form-control" placeholder="Search Faculty" autocomplete="off">
+      <button type="button" class="fsa-clear" id="clearFacultySearch" aria-label="Clear search">×</button>
+    </div>
+    <div class="fsa-toolbar-note"><i class="bi bi-info-circle"></i> Assignment records are stored separately from Subject Master.</div>
+  </div>
+
+  <div class="admin-panel fsa-table-panel">
+    <div class="fsa-panel-head">
+      <div>
+        <span class="fsa-kicker">FACULTY LIST</span>
+        <h2>Faculty Subject Assignment</h2>
+        <p>Each faculty member appears only once, regardless of the number of assignments.</p>
+      </div>
+      <span class="fsa-count-pill" id="facultyCount">{{ faculties|length }} Faculty</span>
+    </div>
+
+    <div class="table-responsive fsa-table-scroll">
+      <table class="table align-middle fsa-main-table" id="facultyTable">
+        <thead><tr><th style="width:90px">S.No</th><th>Faculty Name</th><th style="width:260px;text-align:right">Action</th></tr></thead>
+        <tbody>
+        {% for f in faculties %}
+          <tr class="faculty-row" data-name="{{ f.faculty_name|lower }}">
+            <td><span class="fsa-sno">{{ loop.index }}</span></td>
+            <td>
+              <div class="fsa-faculty-cell">
+                <span class="fsa-avatar">{{ f.faculty_name[:1]|upper }}</span>
+                <div><strong>{{ f.faculty_name }}</strong><small>{{ f.assignment_count }} assignment{{ '' if f.assignment_count == 1 else 's' }}</small></div>
+              </div>
+            </td>
+            <td>
+              <div class="fsa-actions">
+                <button type="button" class="btn fsa-btn fsa-view-btn" data-faculty-id="{{ f.id }}" data-faculty-name="{{ f.faculty_name }}"><i class="bi bi-eye"></i> View</button>
+                <button type="button" class="btn fsa-btn fsa-edit-btn" data-faculty-id="{{ f.id }}" data-faculty-name="{{ f.faculty_name }}"><i class="bi bi-pencil-square"></i> Edit</button>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3"><div class="fsa-empty"><i class="bi bi-people"></i><h3>No faculty found</h3><p>Add faculty members first, then assign their subjects here.</p></div></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div id="facultyNoResults" class="fsa-no-results d-none"><i class="bi bi-search"></i><strong>No faculty matches your search.</strong><span>Try another faculty name.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal fade fsa-modal" id="viewFacultyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header fsa-modal-head">
+        <div><span class="fsa-kicker">ASSIGNMENT DETAILS</span><h3 id="viewFacultyTitle">Faculty - Assigned Subjects</h3><p>Only assignments belonging to this faculty are shown.</p></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewFacultyBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal fade fsa-modal" id="editFacultyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header fsa-modal-head">
+        <div><span class="fsa-kicker">MANAGE ASSIGNMENTS</span><h3 id="editFacultyTitle">Edit Faculty Assignments</h3><p>Add multiple subjects or remove selected assignments without deleting the faculty or Subject Master.</p></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="fsa-context-banner"><span class="fsa-avatar" id="editFacultyAvatar">A</span><div><small>FACULTY</small><strong id="editFacultyName">Faculty</strong></div><span class="fsa-context-count" id="editAssignmentCount">0 assignments</span></div>
+
+        <div class="fsa-edit-grid">
+          <div class="fsa-current-card">
+            <div class="fsa-section-head"><div><span class="fsa-kicker">CURRENT</span><h4>Assigned Subjects</h4></div><span class="fsa-mini-note">Select rows to remove</span></div>
+            <form method="post" action="/admin/faculty-assignments/bulk-delete" id="removeAssignmentsForm">
+              <div id="currentAssignments"></div>
+              <div class="fsa-remove-bar"><label class="fsa-check-all"><input type="checkbox" id="selectAllAssignments"><span>Select all</span></label><button type="submit" class="btn fsa-remove-btn" id="removeSelectedBtn" disabled><i class="bi bi-trash3"></i> Remove Selected</button></div>
+            </form>
+          </div>
+
+          <div class="fsa-add-card">
+            <div class="fsa-section-head"><div><span class="fsa-kicker">ADD SUBJECT</span><h4>Assign Subjects</h4></div><span class="fsa-mini-note">Multiple selection supported</span></div>
+            <form method="post" action="{{ url_for('admin_faculty_assignments_bulk_add') }}" id="addAssignmentsForm">
+              <input type="hidden" name="faculty_id" id="addFacultyId">
+              <div class="fsa-field"><label>Department</label><select id="addDepartment" class="form-select" required><option value="">Select Department</option>{% for d in departments %}<option value="{{ d.id }}">{{ d.department_name }}{% if d.department_code %} ({{ d.department_code }}){% endif %}</option>{% endfor %}</select></div>
+              <div class="fsa-field"><label>Class / Year</label><select name="class_id" id="addClass" class="form-select" required disabled><option value="">Select Department first</option>{% for c in classes %}<option value="{{ c.id }}" data-dept="{{ c.department_id }}" hidden>{{ c.class_name }}</option>{% endfor %}</select></div>
+              <div class="fsa-two-col">
+                <div class="fsa-field"><label>Academic Year</label><select name="academic_year_id" id="addYear" class="form-select" required disabled><option value="">Select Class first</option></select></div>
+                <div class="fsa-field"><label>Semester</label><select name="semester_no" id="addSemester" class="form-select" required disabled><option value="">Select Academic Year first</option></select></div>
+              </div>
+              <div class="fsa-context-hint" id="classContextHint"><i class="bi bi-diagram-3"></i><span>Select Department, Class / Year, Academic Year and Semester to load the assignment context.</span></div>
+              <div class="fsa-subject-picker">
+                <div class="fsa-picker-head"><div><label>Select Subjects</label><small id="subjectPickerHint">Choose a class/context first.</small></div><span id="selectedSubjectCount">0 selected</span></div>
+                <div class="fsa-subject-search"><i class="bi bi-search"></i><input type="search" id="subjectSearch" placeholder="Search subject code or name" disabled></div>
+                <div id="subjectList" class="fsa-subject-list"><div class="fsa-picker-empty"><i class="bi bi-book"></i><span>No subject list loaded.</span></div></div>
+              </div>
+              <button type="submit" class="btn fsa-assign-btn" id="assignSubjectsBtn" disabled><i class="bi bi-link-45deg"></i> Assign Selected Subjects</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const FSA_ASSIGNMENTS = {{ assignments_by_faculty|tojson }};
+const FSA_SUBJECTS = {{ subjects|tojson }};
+const FSA_CLASS_SEMS = {{ class_semester_rows|tojson }};
+const FSA_CLASSES = {{ classes|tojson }};
+const FSA_YEARS = {{ years|tojson }};
+const FSA_ACTIVE_YEAR = {{ active_academic_year|default(None)|tojson }} || FSA_YEARS.find(y=>Number(y.is_active)===1) || null;
+const FSA_DEPARTMENT_BATCHES = {{ department_batches|default([])|tojson }};
+
+// Bootstrap modals must live directly under <body>. This page is rendered
+// inside .admin-main, which has a fixed sidebar/margin on desktop. Moving the
+// dialogs to <body> prevents the modal from being horizontally offset and
+// keeps the backdrop above the sidebar.
+document.querySelectorAll('.fsa-modal').forEach(modal => {
+  if (modal.parentElement !== document.body) document.body.appendChild(modal);
+});
+
+const viewModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewFacultyModal'));
+const editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editFacultyModal'));
+const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const assignmentsFor = id => FSA_ASSIGNMENTS[String(id)] || [];
+const semRoman = n => ({1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI'}[Number(n)] || n);
+
+function renderView(facultyId, facultyName){
+  const rows = assignmentsFor(facultyId);
+  document.getElementById('viewFacultyTitle').textContent = facultyName + ' - Assigned Subjects';
+  const body = document.getElementById('viewFacultyBody');
+  if(!rows.length){ body.innerHTML = '<div class="fsa-empty fsa-modal-empty"><i class="bi bi-inbox"></i><h3>No subjects assigned to this faculty.</h3><p>Use Edit to assign subjects.</p></div>'; }
+  else {
+    body.innerHTML = '<div class="fsa-view-summary"><span><i class="bi bi-person-check"></i> '+rows.length+' assignment'+(rows.length===1?'':'s')+'</span><span><i class="bi bi-shield-check"></i> Subject Master</span></div>'+
+      '<div class="table-responsive fsa-view-table-wrap"><table class="table align-middle fsa-view-table"><thead><tr><th>S.No</th><th>Subject</th><th>Department</th><th>Year</th><th>Academic Year</th><th>Semester</th></tr></thead><tbody>'+
+      rows.map((r,i)=>'<tr><td><span class="fsa-sno">'+(i+1)+'</span></td><td><strong>'+esc(r.subject_label)+'</strong></td><td>'+esc(r.department_name || '—')+'</td><td>'+esc(r.year_label || '—')+'</td><td>'+esc(r.year_name || '—')+'</td><td><span class="fsa-sem-badge">'+esc(r.semester_label || ('Semester '+r.semester_no))+'</span></td></tr>').join('')+
+      '</tbody></table></div>';
+  }
+  viewModal.show();
+}
+
+let editFacultyId = null;
+function renderCurrentAssignments(){
+  const rows = assignmentsFor(editFacultyId);
+  document.getElementById('editAssignmentCount').textContent = rows.length + ' assignment' + (rows.length===1?'':'s');
+  const box = document.getElementById('currentAssignments');
+  if(!rows.length){ box.innerHTML='<div class="fsa-current-empty"><i class="bi bi-inbox"></i><strong>No subjects assigned to this faculty.</strong><span>Add subjects from the panel on the right.</span></div>'; }
+  else {
+    box.innerHTML = '<div class="fsa-current-list">'+rows.map(r=>'<label class="fsa-current-row"><input class="assignment-check" type="checkbox" name="assignment_ids" value="'+r.id+'"><span class="fsa-current-main"><strong>'+esc(r.subject_label)+'</strong><small>'+esc(r.department_name || '—')+' · '+esc(r.year_label || '—')+' · '+esc(r.year_name || '—')+' · '+esc(r.semester_label)+'</small></span><i class="bi bi-check-circle"></i></label>').join('')+'</div>';
+  }
+  document.getElementById('selectAllAssignments').checked = false;
+  updateRemoveButton();
+}
+function openEdit(facultyId, facultyName){
+  editFacultyId = Number(facultyId);
+  document.getElementById('editFacultyTitle').textContent = facultyName + ' - Edit Assignments';
+  document.getElementById('editFacultyName').textContent = facultyName;
+  document.getElementById('editFacultyAvatar').textContent = facultyName.trim().charAt(0).toUpperCase() || 'F';
+  document.getElementById('addFacultyId').value = facultyId;
+  resetAddPanel();
+  renderCurrentAssignments();
+  editModal.show();
+}
+function updateRemoveButton(){
+  const n = document.querySelectorAll('.assignment-check:checked').length;
+  document.getElementById('removeSelectedBtn').disabled = n===0;
+  document.getElementById('selectAllAssignments').checked = n>0 && n===document.querySelectorAll('.assignment-check').length;
+}
+function resetAddPanel(){
+  document.getElementById('addDepartment').value='';
+  const cls=document.getElementById('addClass');
+  const yr=document.getElementById('addYear');
+  const sem=document.getElementById('addSemester');
+  cls.value=''; cls.disabled=true; cls.innerHTML='<option value="">Select Department first</option>';
+  yr.value=''; yr.disabled=true; yr.innerHTML='<option value="">Select Class / Year first</option>';
+  sem.value=''; sem.disabled=true; sem.innerHTML='<option value="">Select Academic Year first</option>';
+  document.getElementById('classContextHint').innerHTML='<i class="bi bi-diagram-3"></i><span>Select Department, Class / Year, Academic Year and Semester to load the assignment context.</span>';
+  document.getElementById('subjectPickerHint').textContent='Choose the full assignment context first.';
+  document.getElementById('subjectSearch').value=''; document.getElementById('subjectSearch').disabled=true;
+  document.getElementById('subjectList').innerHTML='<div class="fsa-picker-empty"><i class="bi bi-book"></i><span>No subject list loaded.</span></div>';
+  document.getElementById('selectedSubjectCount').textContent='0 selected'; document.getElementById('assignSubjectsBtn').disabled=true;
+}
+
+function resetSemester(){
+  const sem=document.getElementById('addSemester');
+  sem.disabled=true;
+  sem.innerHTML='<option value="">Select Academic Year first</option>';
+}
+
+function loadClassesByDepartment(){
+  const departmentId=document.getElementById('addDepartment').value;
+  const cls=document.getElementById('addClass');
+  const yr=document.getElementById('addYear');
+  cls.innerHTML='';
+  yr.disabled=true; yr.innerHTML='<option value="">Select Class / Year first</option>';
+  resetSemester();
+  if(!departmentId){
+    cls.disabled=true;
+    cls.innerHTML='<option value="">Select Department first</option>';
+  }else{
+    const filtered=FSA_CLASSES.filter(c=>String(c.department_id)===String(departmentId));
+    cls.disabled=false;
+    cls.add(new Option('Select Class',''));
+    filtered.forEach(c=>cls.add(new Option(c.class_name,c.id)));
+    if(!filtered.length){ cls.disabled=true; cls.innerHTML='<option value="">No classes found for this department</option>'; }
+  }
+  renderSubjects();
+}
+
+function loadAcademicYears(){
+  // Working assignments always follow the globally active academic year.
+  const classId=document.getElementById('addClass').value;
+  const yr=document.getElementById('addYear');
+  yr.innerHTML=''; resetSemester();
+  if(!classId || !FSA_ACTIVE_YEAR){
+    yr.disabled=true; yr.innerHTML='<option value="">Active Academic Year is not configured</option>'; renderSubjects(); return;
+  }
+  yr.disabled=false;
+  yr.add(new Option(FSA_ACTIVE_YEAR.year_name,FSA_ACTIVE_YEAR.id,true,true));
+  // Academic year is automatic, so immediately load the current semesters.
+  loadSemesters();
+}
+
+function selectedClassYearNo(){
+  const cls=FSA_CLASSES.find(c=>String(c.id)===String(document.getElementById('addClass').value));
+  const name=String((cls||{}).class_name||'');
+  const match=name.match(/(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function allowedSemestersForSelectedClass(){
+  const yearNo=selectedClassYearNo();
+  if(!yearNo) return [];
+  return [yearNo*2-1,yearNo*2];
+}
+
+function loadSemesters(){
+  const departmentId=document.getElementById('addDepartment').value;
+  const classId=document.getElementById('addClass').value;
+  const yearId=document.getElementById('addYear').value;
+  const sem=document.getElementById('addSemester');
+  sem.innerHTML='';
+  if(!departmentId || !classId || !yearId){
+    sem.disabled=true;
+    sem.innerHTML='<option value="">Select Academic Year first</option>';
+    renderSubjects();
+    return;
+  }
+
+  // Fetch semesters from the CURRENT ACTIVE academic-year mapping first.
+  // This prevents old/historical semesters from appearing in new assignments.
+  let semesters=FSA_CLASS_SEMS
+    .filter(r=>String(r.class_id)===String(classId) && String(r.academic_year_id)===String(yearId))
+    .map(r=>Number(r.semester_no))
+    .filter((v,i,a)=>Number.isFinite(v) && a.indexOf(v)===i)
+    .sort((a,b)=>a-b);
+
+  // Safe fallback for newly created class rows before the page is refreshed.
+  if(!semesters.length) semesters=allowedSemestersForSelectedClass();
+
+  sem.disabled=false;
+  sem.add(new Option('Select Semester',''));
+  semesters.forEach(n=>sem.add(new Option('Semester '+n,n)));
+  if(!semesters.length){
+    sem.disabled=true;
+    sem.innerHTML='<option value="">No current active semesters found for this Class / Year</option>';
+  }
+  renderSubjects();
+}
+function contextReady(){ return document.getElementById('addClass').value && document.getElementById('addYear').value && document.getElementById('addSemester').value; }
+function classYearNo(classId){
+  const cls=FSA_CLASSES.find(c=>String(c.id)===String(classId));
+  const name=String((cls||{}).class_name||'');
+  const m=name.match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+function academicStart(yearName){
+  const m=String(yearName||'').match(/(\d{4})/);
+  return m ? Number(m[1]) : 0;
+}
+function cohortKeyFor(classId, yearId){
+  const year=FSA_YEARS.find(y=>String(y.id)===String(yearId));
+  const yearNo=classYearNo(classId);
+  const start=academicStart(year && year.year_name);
+  return start && yearNo ? String(start-yearNo+1) : '';
+}
+function assignmentCohortKey(row){
+  const yearNo=Number(row.year_no)||classYearNo(row.class_id)||1;
+  const start=academicStart(row.year_name);
+  return start && yearNo ? String(start-yearNo+1) : '';
+}
+function renderSubjects(){
+  const list=document.getElementById('subjectList'), search=document.getElementById('subjectSearch');
+  const ready=contextReady(); search.disabled=!ready;
+  if(!ready){ list.innerHTML='<div class="fsa-picker-empty"><i class="bi bi-funnel"></i><span>Select Department, Class / Year, Academic Year and Semester first.</span></div>'; document.getElementById('assignSubjectsBtn').disabled=true; document.getElementById('selectedSubjectCount').textContent='0 selected'; return; }
+  const classId=document.getElementById('addClass').value, departmentId=document.getElementById('addDepartment').value, yearId=document.getElementById('addYear').value, sem=Number(document.getElementById('addSemester').value);
+  const assignedRows=Object.values(FSA_ASSIGNMENTS).flat();
+  const assigned = new Set(assignedRows.filter(r=>String(r.class_id)===String(classId)&&String(r.academic_year_id)===String(yearId)&&Number(r.semester_no)===sem).map(r=>String(r.subject_id)));
+  const targetCohort=cohortKeyFor(classId,yearId);
+  const repeatMap=new Map();
+  assignedRows.forEach(r=>{
+    if(String(r.subject_id) && assignmentCohortKey(r)===targetCohort && Number(r.semester_no)!==sem){
+      const key=String(r.subject_id);
+      if(!repeatMap.has(key)) repeatMap.set(key,Number(r.semester_no));
+    }
+  });
+  const q=search.value.trim().toLowerCase();
+  const filtered=FSA_SUBJECTS.filter(s=>{ const subjectDept=s.department_id==null || String(s.department_id)===String(departmentId); const subjectClass=s.class_id==null || String(s.class_id)===String(classId); return subjectDept && subjectClass && (String(s.subject_code)+' '+String(s.subject_name)).toLowerCase().includes(q); });
+  document.getElementById('subjectPickerHint').textContent = FSA_SUBJECTS.length+' Subject Master record'+(FSA_SUBJECTS.length===1?'':'s')+' · a subject already used by this batch in another semester is blocked.';
+  if(!filtered.length){ list.innerHTML='<div class="fsa-picker-empty"><i class="bi bi-search"></i><span>No subjects match your search.</span></div>'; }
+  else list.innerHTML=filtered.map(s=>{
+    const id=String(s.id);
+    const sameSemester=assigned.has(id);
+    const repeatSemester=repeatMap.get(id);
+    const disabled=sameSemester || !!repeatSemester;
+    const note=sameSemester ? 'Already assigned for this class / year / semester' : repeatSemester ? 'Already used by this student batch in Semester '+repeatSemester+' · repeat blocked' : 'Available for this batch';
+    const icon=sameSemester ? 'bi-check-circle-fill' : repeatSemester ? 'bi-shield-lock-fill' : 'bi-circle';
+    return '<label class="fsa-subject-option '+(disabled?'is-assigned':'')+' '+(repeatSemester?'is-repeat-blocked':'')+'"><input type="checkbox" name="subject_ids" value="'+s.id+'" '+(disabled?'disabled':'')+'><span><strong>'+esc(s.subject_code)+' - '+esc(s.subject_name)+'</strong><small>'+note+'</small></span><i class="bi '+icon+'"></i></label>';
+  }).join('');
+  updateSelectedSubjects();
+  document.getElementById('classContextHint').innerHTML='<i class="bi bi-diagram-3"></i><span><strong>Assignment context:</strong> '+esc(document.getElementById('addClass').selectedOptions[0].text)+' · '+esc(document.getElementById('addYear').selectedOptions[0].text)+' · Semester '+esc(semRoman(sem))+' <em class="fsa-repeat-rule">Subject repeat protection is ON</em></span>';
+}
+function updateSelectedSubjects(){
+  const n=document.querySelectorAll('#subjectList input[name="subject_ids"]:checked').length;
+  document.getElementById('selectedSubjectCount').textContent=n+' selected'; document.getElementById('assignSubjectsBtn').disabled=n===0;
+}
+
+document.querySelectorAll('.fsa-view-btn').forEach(b=>b.addEventListener('click',()=>renderView(b.dataset.facultyId,b.dataset.facultyName)));
+document.querySelectorAll('.fsa-edit-btn').forEach(b=>b.addEventListener('click',()=>openEdit(b.dataset.facultyId,b.dataset.facultyName)));
+document.getElementById('addDepartment').addEventListener('change',loadClassesByDepartment);
+document.getElementById('addClass').addEventListener('change',loadAcademicYears);
+document.getElementById('addYear').addEventListener('change',loadSemesters);
+document.getElementById('addSemester').addEventListener('change',renderSubjects);
+document.getElementById('subjectSearch').addEventListener('input',renderSubjects);
+document.getElementById('subjectList').addEventListener('change',e=>{if(e.target.matches('input[name="subject_ids"]'))updateSelectedSubjects();});
+document.getElementById('selectAllAssignments').addEventListener('change',e=>{document.querySelectorAll('.assignment-check').forEach(x=>x.checked=e.target.checked);updateRemoveButton();});
+document.getElementById('currentAssignments').addEventListener('change',e=>{if(e.target.matches('.assignment-check'))updateRemoveButton();});
+document.getElementById('removeAssignmentsForm').addEventListener('submit',e=>{if(!document.querySelector('.assignment-check:checked')){e.preventDefault();return;} if(!confirm('Remove the selected subject assignment(s)? The faculty and Subject Master records will remain.'))e.preventDefault();});
+document.getElementById('addAssignmentsForm').addEventListener('submit',e=>{if(!contextReady() || !document.querySelector('#subjectList input[name="subject_ids"]:checked')){e.preventDefault();alert('Please select the Class, Academic Year, Semester and at least one available subject.');}});
+
+const searchInput=document.getElementById('facultySearch');
+function filterFaculty(){const q=searchInput.value.trim().toLowerCase();let visible=0;document.querySelectorAll('.faculty-row').forEach(row=>{const show=row.dataset.name.includes(q);row.classList.toggle('d-none',!show);if(show)visible++;});document.getElementById('facultyNoResults').classList.toggle('d-none',visible!==0);document.getElementById('facultyCount').textContent=visible+' Faculty';}
+searchInput.addEventListener('input',filterFaculty);document.getElementById('clearFacultySearch').addEventListener('click',()=>{searchInput.value='';filterFaculty();searchInput.focus();});
+</script>
+{% endblock %}

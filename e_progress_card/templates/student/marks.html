@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Marks | E-Progress Card</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced.css') }}">
+<style>
+.marks-page{max-width:1350px;margin:auto}.semester-bar{background:#fff;border:1px solid #e2eaf3;border-radius:14px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px;box-shadow:0 7px 22px rgba(18,59,120,.05)}.semester-bar label{font-size:13px;font-weight:700;color:#52657d;margin-bottom:5px}.semester-select{min-width:220px}.semester-meta{font-size:13px;color:#718096}.pdf-btn{background:#123b78;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;text-decoration:none}.pdf-btn:hover{background:#0d2f62;color:#fff}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}.summary-box{background:#fff;border:1px solid #e3eaf2;border-radius:14px;padding:19px;box-shadow:0 7px 22px rgba(18,59,120,.05)}.summary-box span{display:block;font-size:12px;text-transform:uppercase;font-weight:700;color:#718096;letter-spacing:.5px}.summary-box strong{font-size:24px;color:#123b78}.appreciation{background:#effaf2;border:1px solid #ccebd5;color:#24633a;border-radius:14px;padding:17px 20px;font-weight:700;margin-bottom:20px}.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;font-weight:700;color:#5f6f82}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}.strong-dot{background:#198754}.moderate-dot{background:#f0ad00}.weak-dot{background:#dc3545}.pending-dot{background:#94a3b8}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}.chart-card,.table-card{background:#fff;border:1px solid #e3eaf2;border-radius:16px;box-shadow:0 7px 22px rgba(18,59,120,.05);overflow:hidden}.chart-head,.table-head{padding:18px 20px;border-bottom:1px solid #e8eef5}.chart-head h5,.table-head h5{margin:0;color:#123b78;font-size:16px;font-weight:800}.chart-head p{margin:4px 0 0;color:#7a8797;font-size:12px}.chart-body{height:330px;padding:15px 18px}.table-responsive{overflow-x:auto}.marks-table{margin:0}.marks-table th{background:#f6f9fc;color:#50647b;font-size:12px;text-transform:uppercase;letter-spacing:.35px;white-space:nowrap}.marks-table td{font-size:13px;vertical-align:middle;white-space:nowrap}.marks-table .subject-name{font-weight:700;color:#1d3f66}.mark-pill{font-weight:700}.performance-badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;text-transform:capitalize}.performance-strong{background:#e8f7ef;color:#16733e}.performance-moderate{background:#fff5d9;color:#9a6a00}.performance-weak{background:#fdecec;color:#b42318}.performance-pending{background:#eef2f6;color:#64748b}.empty-box{padding:45px;text-align:center;color:#718096}.small-note{font-size:12px;color:#7a8797;padding:13px 18px;border-top:1px solid #edf1f5}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr}.semester-bar{align-items:flex-start;flex-direction:column}.semester-select{width:100%}.pdf-btn{width:100%;text-align:center}}@media print{.student-sidebar,.admin-topbar,.student-page-heading,.semester-bar,.chart-grid,.btn,nav,aside{display:none!important}.student-main{width:100%!important;margin:0!important}.table-card{box-shadow:none;border:0}.marks-table th,.marks-table td{font-size:10pt!important}}
+</style>
+</head>
+<body class="student-portal-page">
+{% include "_topbar.html" %}
+<div class="student-layout">
+<aside class="student-sidebar">
+<div class="sidebar-brand"><div class="brand-icon"><i class="bi bi-mortarboard-fill"></i></div><div><h5>E-PROGRESS</h5><small>Student Portal</small></div></div>
+<nav class="sidebar-menu">
+<a href="{{ url_for('student_dashboard') }}"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
+<a href="{{ url_for('student_profile') }}"><i class="bi bi-person-circle"></i>My Profile</a>
+<a href="{{ url_for('student_marks') }}" class="active"><i class="bi bi-journal-check"></i>My Marks</a>
+</nav><div class="sidebar-bottom"><a href="{{ url_for('logout') }}" class="logout-link"><i class="bi bi-box-arrow-right"></i>Logout</a></div>
+</aside>
+<main class="student-main">
+<div class="student-page-heading"><h1>My Marks</h1><p>Semester-wise academic performance</p></div>
+<div class="container-fluid px-4 pb-5"><div class="marks-page">
+<div class="semester-bar"><div><label for="semesterSelect">Select Semester</label><select id="semesterSelect" class="form-select semester-select" onchange="if(this.value)location.href='?semester='+this.value"><option value="">Select Semester</option>{% for x in student_semesters %}<option value="{{ x.semester_no }}" {% if selected_semester==x.semester_no %}selected{% endif %}>Semester {{ x.semester_no }}</option>{% endfor %}</select>{% if selected_academic_year %}<div class="semester-meta mt-2">Academic Year: <strong>{{ selected_academic_year }}</strong></div>{% endif %}</div>{% if selected_semester %}<a class="pdf-btn" href="{{ url_for('student_progress_card_pdf', semester=selected_semester) }}"><i class="bi bi-file-earmark-pdf me-1"></i>Generate Semester PDF</a>{% endif %}</div>
+{% if selected_semester %}
+<div class="summary-grid"><div class="summary-box"><span>Semester Average</span><strong>{{ average_percentage is not none and ('%.2f'|format(average_percentage)) ~ '%' or '—' }}</strong></div><div class="summary-box"><span>Subjects</span><strong>{{ marks|length }}</strong></div><div class="summary-box"><span>Completed Marks</span><strong>{{ marks|selectattr('total','ne',none)|list|length }} / {{ marks|length }}</strong></div></div>
+<div class="appreciation"><i class="bi bi-award-fill me-2"></i>{{ appreciation }}</div>
+<div class="chart-grid"><div class="chart-card"><div class="chart-head"><h5>CIA 1, CIA 2 & External</h5><p>Subject-wise marks for the selected semester</p></div><div class="chart-body"><canvas id="componentChart"></canvas></div></div><div class="chart-card"><div class="chart-head"><h5>Subject Performance</h5><p>Performance distribution for the selected semester</p></div><div class="chart-body"><canvas id="performanceChart"></canvas></div></div></div>
+<div class="table-card"><div class="table-head"><h5><i class="bi bi-table me-2"></i>Semester Marks</h5></div><div class="table-responsive"><table class="table marks-table"><thead><tr><th>S.No</th><th>Subject</th><th>CIA 1 /75</th><th>CIA 2 /75</th><th>Assignment /5</th><th>Internal /25</th><th>External /75</th><th>Total /100</th><th>Grade</th><th>Performance</th></tr></thead><tbody>{% for mark in marks %}<tr><td>{{ loop.index }}</td><td class="subject-name">{{ mark.subject_name }}<br><small class="text-muted">{{ mark.subject_code }}</small></td><td class="mark-pill">{{ mark.ca1 if mark.ca1 is not none else '—' }}</td><td class="mark-pill">{{ mark.ca2 if mark.ca2 is not none else '—' }}</td><td class="mark-pill">{{ mark.assignment if mark.assignment is not none else '—' }}</td><td class="mark-pill">{{ mark.internal if mark.internal is not none else '—' }}</td><td class="mark-pill">{{ mark.external if mark.external is not none else '—' }}</td><td class="mark-pill">{{ mark.total if mark.total is not none else '—' }}</td><td><strong>{{ mark.grade or '—' }}</strong></td><td><span class="performance-badge performance-{{ mark.performance }}">{{ mark.performance }}</span></td></tr>{% else %}<tr><td colspan="10" class="empty-box">No subjects or marks are available for this semester.</td></tr>{% endfor %}</tbody></table></div><div class="small-note">Internal = CIA 1 converted to 10 + CIA 2 converted to 10 + Assignment /5. Semester Total = Internal /25 + External /75.</div></div>
+{% else %}<div class="table-card"><div class="empty-box"><i class="bi bi-journal-x" style="font-size:38px"></i><h5 class="mt-3">Select a semester</h5><p class="mb-0">Choose a semester above to view your academic marks.</p></div></div>{% endif %}
+</div></div>
+</main></div>
+<script>
+const labels={{ marks|map(attribute='subject_code')|list|tojson }};
+const ca1={{ marks|map(attribute='ca1')|map('default',0,true)|list|tojson }};
+const ca2={{ marks|map(attribute='ca2')|map('default',0,true)|list|tojson }};
+const ext={{ marks|map(attribute='external')|map('default',0,true)|list|tojson }};
+const totals={{ marks|map(attribute='total')|map('default',0,true)|list|tojson }};
+const performance={{ marks|map(attribute='performance')|list|tojson }};
+if(labels.length){
+new Chart(document.getElementById('componentChart'),{type:'bar',data:{labels:labels,datasets:[{label:'CIA 1 /75',data:ca1},{label:'CIA 2 /75',data:ca2},{label:'External /75',data:ext}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:75}},plugins:{legend:{position:'bottom'}}}});
+const performanceCounts={strong:0,moderate:0,weak:0,pending:0};
+performance.forEach(x=>{if(Object.prototype.hasOwnProperty.call(performanceCounts,x)) performanceCounts[x]++;});
+new Chart(document.getElementById('performanceChart'),{type:'pie',data:{labels:['Strong (≥75)','Moderate (50–74.99)','Weak (<50)','Pending'],datasets:[{data:[performanceCounts.strong,performanceCounts.moderate,performanceCounts.weak,performanceCounts.pending],backgroundColor:['#198754','#f0ad00','#dc3545','#94a3b8'],borderWidth:2,borderColor:'#ffffff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:function(ctx){const total=ctx.dataset.data.reduce((a,b)=>a+b,0);const value=ctx.raw||0;const pct=total?((value/total)*100).toFixed(1):'0.0';return ctx.label+': '+value+' subject(s) · '+pct+'%';}}}}}});
+}
+</script>
+</body></html>

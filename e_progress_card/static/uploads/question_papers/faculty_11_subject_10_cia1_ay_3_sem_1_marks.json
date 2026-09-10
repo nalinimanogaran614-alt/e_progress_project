@@ -1,0 +1,45 @@
+{
+  "7": {
+    "section_a": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "section_b": [
+      {
+        "choice": "A",
+        "mark": 2.0
+      },
+      {
+        "choice": "A",
+        "mark": 4.0
+      },
+      {
+        "choice": "A",
+        "mark": 5.0
+      },
+      {
+        "choice": "A",
+        "mark": 3.0
+      },
+      {
+        "choice": "A",
+        "mark": 2.0
+      }
+    ],
+    "section_c": [
+      5,
+      6,
+      7,
+      null,
+      null
+    ]
+  }
+}

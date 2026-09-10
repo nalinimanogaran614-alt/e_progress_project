@@ -1,0 +1,29 @@
+{% extends "faculty/base.html" %}
+{% block title %}Faculty Profile | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.profile-shell{max-width:1050px}.profile-main{background:#fff;border:1px solid #e2e9f2;border-radius:17px;box-shadow:var(--faculty-shadow);overflow:hidden}.profile-banner{padding:26px 28px;background:linear-gradient(135deg,#f1f7ff,#fff);border-bottom:1px solid #e5ebf2;display:flex;align-items:center;gap:18px}.profile-big-avatar{width:72px;height:72px;border-radius:19px;background:linear-gradient(135deg,#3479c5,#123b78);color:#fff;display:grid;place-items:center;font-size:27px;font-weight:800;box-shadow:0 8px 20px rgba(40,101,167,.18)}.profile-banner h2{font-size:22px;color:#123b78;font-weight:800;margin:0}.profile-banner p{font-size:12px;color:#718096;margin:5px 0 0}.profile-grid{display:grid;grid-template-columns:repeat(2,1fr)}.profile-item{padding:18px 22px;border-bottom:1px solid #edf1f5}.profile-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#8492a2;font-weight:800;margin-bottom:6px}.profile-value{font-size:13px;color:#26384d;font-weight:700}.profile-section{padding:20px 22px;border-top:1px solid #edf1f5}.profile-section h3{font-size:15px;color:#123b78;font-weight:800;margin:0 0 12px}.class-chip,.sub-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;margin:0 6px 6px 0;font-size:10px;font-weight:800}.class-chip{background:#edf5ff;color:#2865a7}.sub-chip{background:#f6f4ff;color:#6452a6}
+@media(max-width:650px){.profile-grid{grid-template-columns:1fr}.profile-banner{padding:22px}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-page-header"><div><div class="admin-breadcrumb">Faculty / Account</div><h1>Faculty Profile</h1><p>Your faculty account and active academic assignment details.</p></div></div>
+<div class="profile-shell">
+<div class="profile-main">
+    <div class="profile-banner"><div class="profile-big-avatar">{{ profile_letter|default('F') }}</div><div><h2>{{ faculty.faculty_name }}</h2><p><i class="bi bi-person-workspace me-1"></i>{{ faculty.role|default('Faculty')|title }} · {{ faculty.department_name|default('Department not assigned') }}</p></div></div>
+    <div class="profile-grid">
+        <div class="profile-item"><div class="profile-label">Faculty ID</div><div class="profile-value">{{ faculty.faculty_id|default('—') }}</div></div>
+        <div class="profile-item"><div class="profile-label">Faculty Name</div><div class="profile-value">{{ faculty.faculty_name|default('—') }}</div></div>
+        <div class="profile-item"><div class="profile-label">Username</div><div class="profile-value">{{ faculty.username|default('—') }}</div></div>
+        <div class="profile-item"><div class="profile-label">Role</div><div class="profile-value">{{ faculty.role|default('Faculty')|title }}</div></div>
+        <div class="profile-item"><div class="profile-label">Email</div><div class="profile-value">{{ faculty.email|default('—') }}</div></div>
+        <div class="profile-item"><div class="profile-label">Phone</div><div class="profile-value">{{ faculty.phone|default('—') }}</div></div>
+        <div class="profile-item"><div class="profile-label">Department</div><div class="profile-value">{{ faculty.department_name|default('—') }}{% if faculty.department_code %} ({{ faculty.department_code }}){% endif %}</div></div>
+        <div class="profile-item"><div class="profile-label">Date of Birth</div><div class="profile-value">{{ details.dob.strftime('%d-%m-%Y') if details.dob else '—' }}</div></div>
+        <div class="profile-item"><div class="profile-label">Active Academic Year</div><div class="profile-value">{{ academic_year.year_name if academic_year else '—' }}</div></div>
+    </div>
+    <div class="profile-section"><h3><i class="bi bi-mortarboard me-2"></i>Assigned Classes</h3>{% for c in assigned_classes %}<span class="class-chip"><i class="bi bi-building"></i>{{ c.class_name }}</span>{% else %}<span class="profile-value">No active-year classes assigned.</span>{% endfor %}</div>
+    <div class="profile-section"><h3><i class="bi bi-book me-2"></i>Assigned Subjects</h3>{% for s in subjects %}<span class="sub-chip">{{ s.subject_code }} · {{ s.subject_name }} · Sem {{ s.semester_no }}</span>{% else %}<span class="profile-value">No active-year subjects assigned.</span>{% endfor %}</div>
+</div>
+</div>
+{% endblock %}

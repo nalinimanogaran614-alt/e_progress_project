@@ -1,0 +1,43 @@
+{% extends 'admin/_admin_base.html' %}
+{% set title='Faculty' %}
+{% set page_heading='Faculty' %}
+{% set page_description='Manage faculty members. Add one faculty member or upload multiple faculty members from Excel/CSV.' %}
+{% block header_action %}<a href="{{ url_for('add_faculty') }}" class="btn btn-primary admin-add-btn"><i class="bi bi-plus-lg"></i> Add Faculty</a>{% endblock %}
+{% block content %}
+<div class="admin-panel faculty-readable-panel">
+  <div class="table-responsive faculty-table-scroll">
+    <table class="table admin-table align-middle faculty-main-table">
+      <thead><tr><th>S.No</th><th>Faculty Name</th><th>Email</th><th>Phone</th><th>Department</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for f in faculty %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ f.faculty_name }}</strong></td>
+          <td>{{ f.email }}</td>
+          <td>{{ f.phone or '—' }}</td>
+          <td>{{ f.department_name or '—' }}</td>
+          <td>
+            <div class="faculty-actions">
+              <a class="action-btn edit" href="{{ url_for('edit_faculty', faculty_id=f.id) }}">Edit</a>
+              <form method="post" action="{{ url_for('delete_faculty', faculty_id=f.id) }}" onsubmit="return confirm('Are you sure you want to delete this faculty member? Related faculty assignments and profile details will also be removed.');">
+                <button class="action-btn delete" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="text-center py-5">No faculty found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% with failures=session.pop('faculty_bulk_failures', []) %}
+  {% if failures %}
+  <div class="admin-panel faculty-failure-panel mt-4">
+    <div class="p-3 border-bottom"><h3 class="mb-1">Bulk Import Failed Rows</h3><p class="text-muted mb-0">These records were not inserted. Correct them in Excel and upload again.</p></div>
+    <div class="table-responsive p-3"><table class="table admin-table align-middle"><thead><tr><th>Faculty</th><th>Reason</th></tr></thead><tbody>{% for x in failures %}<tr><td>{{ x.name }}</td><td>{{ x.errors|join(', ') }}</td></tr>{% endfor %}</tbody></table></div>
+  </div>
+  {% endif %}
+{% endwith %}
+{% endblock %}

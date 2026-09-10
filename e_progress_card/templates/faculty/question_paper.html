@@ -1,0 +1,295 @@
+{% extends "faculty/base.html" %}
+{% block title %}Question Paper | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.qp-top,.qp-panel{background:#fff;border:1px solid #e3eaf2;border-radius:16px;box-shadow:var(--faculty-shadow)}
+.qp-top{padding:20px 22px;margin-bottom:18px}.kicker{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:#8291a2;font-weight:800}.qp-top h2{font-size:21px;color:#123b78;font-weight:800;margin:4px 0}.qp-top p{font-size:12px;color:#7b8999;margin:0}.controls{display:flex;justify-content:flex-end;gap:8px;align-items:center;flex-wrap:wrap}.select{height:43px;min-width:230px;border:1px solid #d8e1ea;border-radius:9px;padding:0 10px;font-size:12px}.qp-panel{overflow:hidden}.head{padding:18px 20px;border-bottom:1px solid #e8eef4;display:flex;justify-content:space-between;gap:15px;align-items:center}.head h3{font-size:18px;color:#123b78;font-weight:800;margin:0}.head p{font-size:11px;color:#7b8999;margin:4px 0 0}.upload-box{margin:18px 20px;padding:20px;border:1px dashed #8fb0cf;border-radius:13px;background:#f8fbff}.upload-box label{font-size:13px;font-weight:800;color:#40566d}.upload-box input{margin-top:9px}.help{font-size:11px;color:#7b8999;margin-top:7px;line-height:1.5}.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 20px 18px}.field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#7f8fa0;font-weight:800;margin-bottom:5px}.field input{width:100%;height:40px;border:1px solid #d8e0e8;border-radius:8px;padding:0 10px;font-size:12px}.field input[readonly]{background:#f5f8fb}.section{margin:0 20px 18px;border:1px solid #dfe6ed;border-radius:10px;overflow:hidden}.section-title{padding:11px 12px;background:#f5f8fb;color:#123b78;font-size:12px;font-weight:800}.q-table{width:100%;border-collapse:collapse}.q-table th,.q-table td{border:1px solid #dfe4e9;padding:7px;font-size:10px}.q-table th{background:#f8fafc;color:#5d7084;text-align:center}.q-table input,.q-table textarea{width:100%;border:1px solid #e1e6eb;border-radius:5px;padding:5px;font-size:11px}.q-table textarea{min-height:34px;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere}.view-mode .q-table textarea{height:auto;min-height:54px;overflow:hidden;resize:none}.view-mode .q-table input{border-color:#dfe6ed}.qno{width:55px;text-align:center}.level{width:105px}.actions{display:flex;justify-content:flex-end;gap:9px;padding:0 20px 20px}.btn-save{border:0;border-radius:8px;background:#2865a7;color:#fff;padding:10px 16px;font-size:12px;font-weight:800}.btn-secondary{border:1px solid #d8e0e8;border-radius:8px;background:#fff;color:#53687e;padding:10px 16px;font-size:12px;font-weight:800}.preview-note{margin:0 20px 18px;padding:12px;background:#fbfcfe;border:1px solid #edf1f5;border-radius:9px;font-size:11px;color:#6e7f90;line-height:1.55}.saved-file{font-size:11px;color:#198754;font-weight:700}.extract-progress{display:none;margin-top:10px}.extract-progress .bar{height:8px;background:#e8eef5;border-radius:99px;overflow:hidden}.extract-progress .fill{height:100%;width:0;background:#2865a7;transition:width .2s}.raw-box{display:none;margin:0 20px 18px}.raw-box textarea{width:100%;min-height:130px;border:1px solid #dfe6ed;border-radius:9px;padding:10px;font-size:11px;font-family:monospace}.status-ok{color:#198754!important;font-weight:700}.status-error{color:#dc3545!important;font-weight:700}
+@media(max-width:900px){.meta-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.meta-grid{grid-template-columns:1fr}.controls{justify-content:flex-start}.select{width:100%}}
+.semester-toolbar{display:flex;gap:14px;align-items:center;justify-content:flex-end;background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:10px 14px;margin-bottom:12px}.semester-toolbar span{display:block;font-size:9px;color:#8190a1;text-transform:uppercase;font-weight:800}.semester-toolbar strong{font-size:12px;color:#123b78}.semester-toolbar select{height:36px;border:1px solid #d7e0e9;border-radius:8px;padding:0 10px;font-weight:700;color:#123b78}@media(max-width:700px){.semester-toolbar{justify-content:space-between;flex-wrap:wrap}}
+
+.view-banner{margin:18px 20px 0;padding:12px 14px;border-radius:10px;background:#eef6ff;border:1px solid #b9d5f2;color:#123b78;font-size:12px;font-weight:700}
+.view-mode .upload-box,.view-mode .raw-box{display:none}.view-mode .btn-save,.view-mode .clear-btn{display:none}
+.view-mode .q-table input,.view-mode .q-table textarea{background:#f7f9fb;color:#243b53}
+</style>
+{% endblock %}
+{% block content %}<div class="semester-toolbar"><div><span>Academic Year</span><strong>{{ academic_year.year_name if academic_year else "—" }}</strong></div><div><span>Semester</span><select onchange="changeSemester(this.value)">{% for x in semester_options %}<option value="{{ x.semester_no }}" {% if semester_no == x.semester_no %}selected{% endif %}>Semester {{ x.semester_no }} (Year {{ x.year_no }})</option>{% endfor %}</select></div></div>
+<div class="admin-page-header"><div><span class="admin-breadcrumb">Academic Management / Question Paper</span><h1>Question Paper Upload</h1><p>Upload the original CIA question paper. The system scans it and fills the complete structured format automatically.</p></div></div>
+<div class="qp-top"><div class="row align-items-center g-3"><div class="col-lg-5"><div class="kicker">Question Paper Type</div><h2>{{ 'CIA 1' if cia == 'cia1' else ('CIA 2' if cia == 'cia2' else 'External') }} Question Paper</h2><p>{% if subject %}{{ subject.subject_code }} - {{ subject.subject_name }}{% else %}Select a subject below{% endif %}</p></div><div class="col-lg-7"><div class="controls">
+<select class="select" id="ciaSelect" onchange="changeCIA(this.value)"><option value="cia1" {% if cia=='cia1' %}selected{% endif %}>CIA 1 Question Paper</option><option value="cia2" {% if cia=='cia2' %}selected{% endif %}>CIA 2 Question Paper</option><option value="external" {% if cia=='external' %}selected{% endif %}>External Question Paper</option></select>
+<select class="select" id="subjectSelect" onchange="changeSubject(this.value)"><option value="">Select Assigned Subject</option>{% for s in subjects %}<option value="{{ s.subject_id }}" {% if selected_subject_id == s.subject_id %}selected{% endif %}>{{ s.subject_code }} - {{ s.subject_name }}</option>{% endfor %}</select>
+</div></div></div></div>
+<div class="qp-panel {% if view_mode %}view-mode{% endif %}">
+<div class="head"><div><h3>Scan, Extract & Fill Question Paper</h3><p>OCR reads the uploaded scan/PDF and fills college, exam, department, subject, date, duration, year/semester, questions, CO and K levels.</p></div><span class="badge text-bg-light">PDF · JPG · JPEG · PNG · DOC · DOCX</span></div>
+{% if view_mode %}<div class="view-banner"><strong>Saved Extracted Question Paper</strong><br><span style="font-weight:600">The questions, CO levels and K levels shown below are the data saved after extraction. The original uploaded PDF is not opened in View mode.</span></div>{% if not saved %}<div class="view-banner" style="background:#fff8e8;border-color:#f0cf86;color:#7a5610">No saved extracted questions were found for this subject, exam and semester.</div>{% endif %}{% endif %}
+<div class="upload-box"><label for="paperFile">Upload Original Question Paper</label><input id="paperFile" class="form-control" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,image/png,image/jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="help"><strong>Recommended:</strong> upload the clear scanned PDF/image of the actual question paper. PDF scanning processes <strong>every page</strong>, not just page 1. DOCX text is extracted directly.</div><div id="ocrStatus" class="help"></div><div id="extractProgress" class="extract-progress"><div class="bar"><div id="progressFill" class="fill"></div></div></div></div>
+<div class="meta-grid">
+{% set sv = saved or {} %}
+<div class="field"><label>College Name</label><input id="college_name" value="{{ sv.get('college_name','') }}" {% if view_mode %}readonly{% endif %}></div>
+<div class="field"><label>Exam Name</label><select id="exam_name" class="form-select" style="height:40px;font-size:12px" {% if view_mode %}disabled{% endif %}><option value="CIA 1" {% if cia=='cia1' %}selected{% endif %}>CIA 1</option><option value="CIA 2" {% if cia=='cia2' %}selected{% endif %}>CIA 2</option><option value="External" {% if cia=='external' %}selected{% endif %}>External</option></select></div>
+<div class="field"><label>Department</label><input id="department" readonly value="{{ sv.get('department', faculty.department_name if faculty else '') }}"></div>
+<div class="field"><label>Subject Code</label><input id="subject_code" readonly value="{{ sv.get('subject_code', subject.subject_code if subject else '') }}"></div>
+<div class="field"><label>Subject Name</label><input id="subject_name" readonly value="{{ sv.get('subject_name', subject.subject_name if subject else '') }}"></div>
+<div class="field"><label>Exam Date</label><input id="date" type="date" value="{{ sv.get('date','') }}" {% if view_mode %}readonly{% endif %}></div>
+<div class="field"><label>Entered / Uploaded Date</label><input id="entered_date" readonly value="{{ sv.get('entered_date','') }}"></div>
+<div class="field"><label>Duration</label><input id="duration" readonly value="{{ sv.get('duration','3 Hours') or '3 Hours' }}"></div>
+<div class="field"><label>Maximum Marks</label><input id="maximum_marks" value="{{ sv.get('maximum_marks','75') }}" {% if view_mode %}readonly{% endif %}></div>
+<div class="field"><label>Class / Year</label><input id="year" readonly value="{{ sv.get('year', 'Year ' ~ (semester_options|selectattr('semester_no','equalto',semester_no)|map(attribute='year_no')|first if semester_no else '')) }}"></div>
+<div class="field"><label>Semester</label><input id="semester" readonly value="{{ sv.get('semester', semester_no if semester_no else '') }}"></div>
+<div class="field"><label>Academic Year</label><input id="academic_year" readonly value="{{ sv.get('academic_year', academic_year.year_name if academic_year else '') }}"></div>
+</div>
+<div class="preview-note"><strong>Automatic extraction:</strong> The uploaded file is scanned first. The system tries to identify <strong>all visible details</strong>, including college, examination name, department, subject code/name, exam date, duration, maximum marks, year, semester, academic year, every question, Section A/B/C, A/B alternatives, CO levels and K levels. You can correct OCR text before saving.</div>
+<div class="preview-note"><strong>Question-paper structure:</strong> Section A = 10 × 2; Section B = 5-mark A/B choices; Section C = 5 questions, answer any 3 × 10. The original uploaded file is also stored.</div>
+<div class="raw-box" id="rawBox"><div class="help"><strong>OCR text used for extraction</strong></div><textarea id="rawText" readonly></textarea></div>
+<div id="sections"></div>
+<div class="actions">
+{% if saved and not view_mode %}<a class="btn-secondary" href="{{ url_for('faculty_question_paper', subject_id=selected_subject_id, cia=cia, semester=semester_no, view=1) }}">View Extracted QP</a>{% endif %}
+{% if view_mode %}<a class="btn-secondary" href="{{ url_for('faculty_question_paper', subject_id=selected_subject_id, cia=cia, semester=semester_no) }}">Edit Saved QP</a>{% else %}<button type="button" class="btn-secondary clear-btn" onclick="clearPaper()">Clear / New Scan</button><button type="button" class="btn-save" onclick="savePaper()">{% if saved %}Update Question Paper{% else %}Save Question Paper{% endif %}</button>{% endif %}
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script>
+function changeSemester(v){const u=new URL(window.location.href);u.searchParams.set("semester",v);u.searchParams.delete("subject_id");window.location.href=u.toString()}
+
+if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
+const subjectId={{ selected_subject_id|default(0) }}, cia="{{ cia }}";
+const viewMode={{ 'true' if view_mode else 'false' }};
+// Server sends one canonical Section A/B/C payload.  Keep this direct so
+// View Extracted QP cannot lose data during a second browser-side conversion.
+const savedQuestionsRaw={{ (sv.get('sections',[]) if sv else [])|tojson }};
+const savedQuestions=Array.isArray(savedQuestionsRaw)
+ ? savedQuestionsRaw.map(sec=>({questions:Array.isArray(sec?.questions)?sec.questions:(Array.isArray(sec)?sec:[])}))
+ : [];
+function today(){return new Date().toISOString().slice(0,10)}
+if(!document.getElementById('entered_date').value)document.getElementById('entered_date').value=today();
+function changeCIA(v){const s=document.getElementById('subjectSelect').value;if(s){let u='{{ url_for("faculty_question_paper") }}?subject_id='+s+'&cia='+v;{% if semester_no is not none %}u+='&semester={{ semester_no }}';{% endif %}location.href=u}}
+function changeSubject(v){if(v){let u='{{ url_for("faculty_question_paper") }}?subject_id='+v+'&cia='+document.getElementById('ciaSelect').value;{% if semester_no is not none %}u+='&semester={{ semester_no }}';{% endif %}location.href=u}}
+function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+function normalizeExtractedRow(q){
+ q=Object.assign({number:'',question:'',co:'',k:''},q||{});
+ q.number=String(q.number||'').replace(/\s+/g,' ').trim();
+ let text=String(q.question||'');
+ // Saved Section-B rows may contain the display label (11 A / 11 B) in Q.No.
+ // or the A./B. marker in the question text. Keep the question text clean and
+ // let the fixed table layout display the A/B choice.
+ text=text.replace(/^\s*([AB])\s*[.)\-:]\s*/i,'');
+ // Defensive cleanup: OCR may leave CO/K tokens inside the question text.
+ const coMatch=text.match(/\bC+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?)\s*)?\s*[-:.)]?\s*(\d{1,2})\b/i);
+ const kMatch=text.match(/\bK(?:\s*(?:LEVEL|LEV(?:EL)?)\s*)?\s*[-:.)]?\s*(\d{1,2})\b/i);
+ if(!q.co && coMatch) q.co='CO'+coMatch[1];
+ if(!q.k && kMatch) q.k='K'+kMatch[1];
+ // Never allow the table footer / OCR testing note to become part of Q20.
+ text=text.replace(/\b(?:Testing\s+format|End\s+of\s+Question\s+Paper|Q\.?No\s*\|?\s*CO\s*Level\s*\|?\s*Questions\s*\|?\s*K\s*Level).*$/i,' ');
+ text=text
+   .replace(/\bC+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?)\s*)?\s*[-:.)]?\s*\d{1,2}\b/ig,' ')
+   .replace(/\bK(?:\s*(?:LEVEL|LEV(?:EL)?)\s*)?\s*[-:.)]?\s*\d{1,2}\b/ig,' ')
+   .replace(/\s{2,}/g,' ').trim();
+ q.question=text;
+ return q;
+}
+function renderSections(data){
+ const ro=viewMode?' readonly':'';
+ const defs=[
+  {title:'SECTION-A (10×2=20) · ANSWER ALL THE QUESTIONS',rows:Array.from({length:10},(_,i)=>({label:String(i+1)}))},
+  {title:'SECTION-B (5×5=25) · ANSWER ALL THE QUESTIONS — EITHER A OR B',rows:Array.from({length:5},(_,i)=>({label:String(i+11),parts:['A','B']}))},
+  {title:'SECTION-C (3×10=30) · ANSWER ANY THREE QUESTIONS',rows:Array.from({length:5},(_,i)=>({label:String(i+16)}))}
+ ];
+ let html='';
+ defs.forEach((d,si)=>{const arr=data?.[si]?.questions||[];html+='<div class="section"><div class="section-title">'+d.title+'</div><table class="q-table"><thead><tr><th class="qno">Q.No</th><th class="level">CO Level</th><th>Questions</th><th class="level">K Level</th></tr></thead><tbody>';let ri=0;
+ d.rows.forEach(spec=>{if(spec.parts){spec.parts.forEach(part=>{const q=normalizeExtractedRow(arr[ri++]||{});html+='<tr><td class="qno">'+spec.label+'<br><b>'+part+'</b></td><td><input class="co"'+ro+' value="'+esc(q.co||'')+'"></td><td><textarea class="question"'+ro+'>'+esc(q.question||'')+'</textarea></td><td><input class="k"'+ro+' value="'+esc(q.k||'')+'"></td></tr>'})}else{const q=normalizeExtractedRow(arr[ri++]||{});html+='<tr><td class="qno">'+spec.label+'</td><td><input class="co"'+ro+' value="'+esc(q.co||'')+'"></td><td><textarea class="question"'+ro+'>'+esc(q.question||'')+'</textarea></td><td><input class="k"'+ro+' value="'+esc(q.k||'')+'"></td></tr>'}});html+='</tbody></table></div>'});
+ document.getElementById('sections').innerHTML=html;
+}
+function collect(){return [...document.querySelectorAll('.section')].map(sec=>({title:sec.querySelector('.section-title').textContent,questions:[...sec.querySelectorAll('tbody tr')].map(r=>({number:r.children[0].textContent.trim(),co:r.querySelector('.co').value.trim(),question:r.querySelector('.question').value.trim(),k:r.querySelector('.k').value.trim()}))}))}
+if(viewMode){
+  // View mode is database/server driven. Do not make a second AJAX request;
+  // the server has already loaded and normalized the saved paper for this
+  // faculty + subject + CIA + academic semester. This avoids session-semester
+  // mismatches and JSON/API failures making an otherwise valid QP appear blank.
+  renderSections(savedQuestions);
+}else{
+  renderSections(savedQuestions);
+}
+function setStatus(t,type=''){const e=document.getElementById('ocrStatus');e.textContent=t;e.className='help '+(type==='ok'?'status-ok':type==='error'?'status-error':'')}
+function setProgress(v){document.getElementById('extractProgress').style.display='block';document.getElementById('progressFill').style.width=Math.max(0,Math.min(100,v))+'%'}
+function clearPaper(){['college_name','date','maximum_marks'].forEach(id=>document.getElementById(id).value='');document.getElementById('entered_date').value=today();renderSections([]);document.getElementById('paperFile').value='';document.getElementById('rawBox').style.display='none';setStatus('Cleared.','ok')}
+function cleanLine(s){return s.replace(/[|]+/g,' ').replace(/\s+/g,' ').trim()}
+function normalizeOCRText(text){return text.replace(/\r/g,'').split('\n').map(cleanLine).filter(Boolean)}
+function afterLabel(lines, patterns){for(let i=0;i<lines.length;i++){for(const p of patterns){const m=lines[i].match(p);if(m&&m[1])return cleanLine(m[1])}if(patterns.some(p=>p.test(lines[i]))&&lines[i+1])return lines[i+1]}return ''}
+function firstMatch(text, patterns){for(const p of patterns){const m=text.match(p);if(m&&m[1])return cleanLine(m[1])}return ''}
+function parseOCR(text){
+ const lines=normalizeOCRText(text);
+ const joined=lines.join(' ');
+ const data={college_name:'',exam_name:'',department:'',subject_code:'',subject_name:'',date:'',entered_date:today(),duration:'',maximum_marks:'75',year:'',semester:'',academic_year:'',sections:[{questions:[]},{questions:[]},{questions:[]}]};
+ data.college_name=afterLabel(lines,[/^(.*(?:COLLEGE|INSTITUTE|UNIVERSITY).*)$/i])||lines.find(x=>/COLLEGE|INSTITUTE|UNIVERSITY/i.test(x))||'';
+ data.exam_name=firstMatch(joined,[/(CIA\s*[I1]|CIA\s*II|CIA\s*2|CIA\s*1|EXTERNAL)[^ ]*\s*(?:MARK|EXAMINATION|EXAM)?/i])||'';
+ data.department=afterLabel(lines,[/^DEPARTMENT(?:\s*NAME)?\s*[:\-]\s*(.+)$/i,/^DEPARTMENT(?:\s*NAME)?$/i])||'';
+ data.subject_code=firstMatch(joined,[/SUBJECT\s*CODE\s*[:\-]\s*([A-Z0-9][A-Z0-9._\/-]*)/i,/CODE\s*[:\-]\s*([A-Z]{2,}[A-Z0-9._\/-]*)/i])||'';
+ data.subject_name=afterLabel(lines,[/^SUBJECT\s*(?:NAME)?\s*[:\-]\s*(.+)$/i,/^SUBJECT\s*(?:NAME)?$/i])||'';
+ data.date=firstMatch(joined,[/DATE\s*[:\-]?\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/i,/(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/])||'';
+ data.duration=firstMatch(joined,[/(?:DURATION|TIME)\s*[:\-]?\s*([0-9]+\s*(?:HOURS?|HRS?|MINUTES?|MINS?))/i])||'';
+ data.maximum_marks=firstMatch(joined,[/(?:MAXIMUM|MAX)\s*MARKS?\s*[:\-]?\s*(\d+)/i,/TOTAL\s*[:\-]?\s*(75|100)/i])||'75';
+ data.year=firstMatch(joined,[/YEAR\s*[:\-]?\s*(\d{1,2}(?:ST|ND|RD|TH)?|FIRST|SECOND|THIRD)/i])||'';
+ data.semester=firstMatch(joined,[/SEM(?:ESTER)?\s*[:\-]?\s*(\d{1,2}|[IVX]+)/i])||'';
+ data.academic_year=firstMatch(joined,[/(?:ACADEMIC|ACAD\.?)[ \-_]?YEAR\s*[:\-]?\s*(\d{4}\s*[-\/]\s*\d{4})/i,/(20\d{2}\s*[-\/]\s*20\d{2})/])||'';
+
+ const secFromLine=line=>{
+   const u=line.toUpperCase().replace(/[^A-Z0-9 ]/g,' ');
+   if(/\b(?:SECTION|PART)\s*A\b/.test(u)||/\bPART\s*[- ]?A\b/.test(u)) return 0;
+   if(/\b(?:SECTION|PART)\s*B\b/.test(u)||/\bPART\s*[- ]?B\b/.test(u)) return 1;
+   if(/\b(?:SECTION|PART)\s*C\b/.test(u)||/\bPART\s*[- ]?C\b/.test(u)) return 2;
+   return -1;
+ };
+ const metaFor=rest=>{
+   // OCR can read CO as C0, CCO or CcO. Accept those variants.
+   const co=String(rest||'').match(/\bC+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\b/i);
+   const k=String(rest||'').match(/\bK(?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\b/i);
+   return {co:co?'CO'+co[1]:'',k:k?'K'+k[1]:''};
+ };
+ const stripMeta=rest=>cleanLine(String(rest||'')
+   .replace(/\bC+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*\d{1,2}\b/ig,' ')
+   .replace(/\bK(?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*\d{1,2}\b/ig,' '));
+ const looksLikeHeader=line=>/^(?:TIME|DURATION|MAX(?:IMUM)?\s*MARKS?|TOTAL|ANSWER\s+(?:ALL|ANY)|INSTRUCTIONS?|QUESTION\s+PAPER|SUBJECT|CODE|DATE|SEMESTER|YEAR|TESTING\s+FORMAT|END\s+OF\s+QUESTION|Q\.?NO\s*\|?\s*CO\s*LEVEL)\b/i.test(line);
+ let current=-1, last=null;
+ for(const raw of lines){
+   const line=cleanLine(raw); if(!line) continue;
+   const sec=secFromLine(line); if(sec>=0){current=sec;last=null;continue;}
+   // Accept Q1, Question 1, 1., 1), 1- and OCR's plain "1 question text".
+   // Supports 15B, 15(B), Q15(B), 15 B., 15-B and OCR variants.
+   const m=line.match(/^(?:Q(?:UESTION)?\s*)?(\d{1,2})\s*(?:[\(\[]?\s*([ABab])\s*[\)\]]?)?\s*(?:[.)\-:])?\s*(.+)$/i);
+   if(m){
+      const n=Number(m[1]); let rest=cleanLine(m[3]||'');
+      // Skip mark-pattern/header lines such as "10 x 2 = 20 Marks".
+      if(n>=1 && n<=30 && rest && !/^x\s*\d+/i.test(rest) && !/^marks?\b/i.test(rest)){
+        let target=current;
+        if(target<0) target=n<=10?0:n<=15?1:2;
+        // Numbering is authoritative when section headings are OCR-corrupted.
+        if(n<=10) target=0; else if(n<=15) target=1; else target=2;
+        const meta=metaFor(rest); rest=stripMeta(rest);
+        const part=(m[2]||'').toUpperCase();
+        if(part) rest=part+'. '+rest;
+        const q={number:String(n),question:rest,co:meta.co,k:meta.k};
+        data.sections[target].questions.push(q); current=target; last=q; continue;
+      }
+   }
+   // A/B alternatives sometimes appear as a separate line: "A) ..." / "B. ...".
+   const ab=line.match(/^(?:[\(\[]?\s*)?([AB])(?:\s*[\)\]]?)?\s*[.)\-:]?\s*(.+)$/i);
+   if(current===1 && ab && Number(last?.number||0)>=11 && Number(last?.number||0)<=15){
+      const q={number:last.number,question:ab[1].toUpperCase()+'. '+stripMeta(ab[2]),co:metaFor(ab[2]).co,k:metaFor(ab[2]).k};
+      data.sections[1].questions.push(q); last=q; continue;
+   }
+   if(last && current>=0 && !looksLikeHeader(line) && line.length>2){
+      // CO/K may appear on a separate OCR line; capture them before appending text.
+      const continuationMeta=metaFor(line);
+      if(continuationMeta.co) last.co=continuationMeta.co;
+      if(continuationMeta.k) last.k=continuationMeta.k;
+      const cleanContinuation=stripMeta(line);
+      if(cleanContinuation && last.question.length<900) last.question=cleanLine(last.question+' '+cleanContinuation);
+   }
+ }
+ // Secondary global scan for OCR text that lost all section formatting.
+ if(data.sections.every(s=>!s.questions.length)){
+   const flat=text.replace(/\r/g,'\n');
+   const re=/(?:^|\n)\s*(?:Q(?:UESTION)?\s*)?(\d{1,2})\s*(?:[\(\[]?\s*([AB])\s*[\)\]]?)?\s*[.)\-:]?\s*([^\n]+)/ig;
+   let m; while((m=re.exec(flat))){const n=Number(m[1]);if(n<1||n>25)continue;const si=n<=10?0:n<=15?1:2;let q=stripMeta(m[3]);if(m[2])q=m[2].toUpperCase()+'. '+q;const meta=metaFor(m[3]);data.sections[si].questions.push({number:String(n),question:q,co:meta.co,k:meta.k});}
+ }
+ // Merge duplicate question fragments and pull CO/K appearing on the same or following OCR line.
+ data.sections.forEach(sec=>{
+   const merged=[]; for(const q of sec.questions){const prev=merged[merged.length-1];if(prev && prev.number===q.number && /^([AB])\.\s/i.test(q.question)===false && !/^([AB])\.\s/i.test(prev.question)){prev.question=cleanLine(prev.question+' '+q.question);prev.co=prev.co||q.co;prev.k=prev.k||q.k;}else merged.push(q)} sec.questions=merged;
+ });
+ // Final cleanup guarantees metadata never remains inside the Question column.
+ data.sections.forEach(sec=>sec.questions=sec.questions.map(normalizeExtractedRow));
+ const all=data.sections.flatMap(x=>x.questions);
+ for(const line of lines){
+   const m=line.match(/(?:Q(?:UESTION)?\s*)?(\d{1,2})\D{0,180}?\b(CO\s*(?:LEVEL)?\s*[-:.)]?\s*\d+)\b(?:\D{0,80}?\b(K\s*(?:LEVEL)?\s*[-:.)]?\s*\d+)\b)?/i); if(!m)continue;
+   const q=all.find(x=>x.number===String(Number(m[1]))); if(q){const co=m[2].match(/\d+/);const k=(m[3]||'').match(/\d+/);if(co)q.co='CO'+co[0];if(k)q.k='K'+k[0];}
+ }
+ // Table-aware metadata recovery.
+ // Tesseract sometimes reads table columns independently, so a row's CO/K token may not
+ // appear on the same OCR line as the question. When the full ordered token stream is
+ // available, map it back to the parsed question rows by position.
+ const orderedQuestions=data.sections.flatMap(sec=>sec.questions);
+ const coStream=[]; const kStream=[];
+ const coToken=/\bC+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\b/ig;
+ const kToken=/\bK(?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\b/ig;
+ let tm; while((tm=coToken.exec(text))) coStream.push('CO'+tm[1]);
+ while((tm=kToken.exec(text))) kStream.push('K'+tm[1]);
+ if(coStream.length>=orderedQuestions.length){
+   orderedQuestions.forEach((q,i)=>{if(!q.co) q.co=coStream[i];});
+ }
+ if(kStream.length>=orderedQuestions.length){
+   orderedQuestions.forEach((q,i)=>{if(!q.k) q.k=kStream[i];});
+ }
+ // If only a few values are missing, use a local OCR window around that question number.
+ orderedQuestions.forEach(q=>{
+   const n=String(q.number||'').replace(/[^0-9]/g,'');
+   if(!n) return;
+   const re=new RegExp('(?:^|\\n)\\s*(?:Q(?:UESTION)?\\s*)?'+n+'\\s*(?:[\\(\\[]?\\s*[AB]\\s*[\\)\\]]?)?\\s*[.)\\-:]?([\\s\\S]{0,500}?)(?=(?:\\n\\s*(?:Q(?:UESTION)?\\s*)?\\d{1,2}\\s*(?:[\\(\\[]?\\s*[AB]\\s*[\\)\\]]?)?\\s*[.)\\-:])|$)','i');
+   const win=String(text).match(re);
+   if(win){const m=metaFor(win[1]); if(!q.co&&m.co)q.co=m.co; if(!q.k&&m.k)q.k=m.k;}
+ });
+ // Strong table-row recovery.  OCR can read a PDF table as one visual row such as:
+ // "15 B CO4 Describe ... K4".  Recover the row directly instead of depending on section headings.
+ const rowRe=/(?:^|\n)\s*(?:Q(?:UESTION)?\s*)?(\d{1,2})\s*(?:[\(\[]?\s*([AB])\s*[\)\]]?)?\s*[.)\-:]?\s*(?:C+(?:\s*)[O0](?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\s+)?([\s\S]*?)(?:\s+K(?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2}))(?=\s*(?:\n|$))/ig;
+ let rm;
+ const upsertRecovered=(si,n,part,body,co,k)=>{
+   body=cleanLine(stripMeta(body||''));
+   body=body.replace(/\b(?:Testing\s+format|End\s+of\s+Question\s+Paper|Q\.?No\s*CO\s*Level\s*Questions\s*K\s*Level).*$/i,'').trim();
+   if(!body || looksLikeHeader(body)) return;
+   const prefix=part ? part+'. ' : '';
+   const keyPrefix=part ? new RegExp('^'+part+'\\.\\s*','i') : null;
+   const existing=data.sections[si].questions.find(q=>q.number===String(n) && (!part || keyPrefix.test(q.question||'')));
+   const value={number:String(n),question:prefix+body,co:co?'CO'+co:'',k:k?'K'+k:''};
+   if(existing){
+      if(value.question.length>String(existing.question||'').length || !existing.question) existing.question=value.question;
+      if(value.co) existing.co=value.co;
+      if(value.k) existing.k=value.k;
+   }else data.sections[si].questions.push(value);
+ };
+ while((rm=rowRe.exec(String(text)))){
+   const n=Number(rm[1]); if(n<1||n>25) continue;
+   const part=(rm[2]||'').toUpperCase();
+   const si=n<=10?0:n<=15?1:2;
+   upsertRecovered(si,n,part,rm[4],rm[3],rm[5]);
+ }
+ // Also support rows where CO/K are on the same line but the OCR omitted line breaks between columns.
+ const inlineRows=normalizeOCRText(text);
+ for(const raw of inlineRows){
+   if(/TESTING\s+FORMAT|END\s+OF\s+QUESTION/i.test(raw)) continue;
+   const im=raw.match(/^(?:Q(?:UESTION)?\s*)?(\d{1,2})\s*(?:[\(\[]?\s*([AB])\s*[\)\]]?)?\s*[.)\-:]?\s*(?:C+(?:\s*)[O0]\s*(?:LEVEL\s*)?[-:.)]?\s*(\d{1,2})\s+)?(.+?)\s+K(?:\s*(?:LEVEL|LEV(?:EL)?))?\s*[-:.)]?\s*(\d{1,2})\s*$/i);
+   if(im){const n=Number(im[1]);if(n>=1&&n<=25)upsertRecovered(n<=10?0:n<=15?1:2,n,(im[2]||'').toUpperCase(),im[4],im[3],im[5]);}
+ }
+
+ // Dedicated Section-B recovery: OCR often produces alternatives as `15(B)` / `Q15 B` / `15-B`.
+ // Scan the full OCR text independently so a missing B alternative is never lost.
+ const bAltRe=/(?:^|\n)\s*(?:Q(?:UESTION)?\s*)?(1[1-5])\s*(?:[\(\[]?\s*)?([AB])(?:\s*[\)\]]?)?\s*[.)\-:]?\s*([^\n]+)/ig;
+ let bm;
+ while((bm=bAltRe.exec(String(text)))){
+   const n=String(Number(bm[1])); const part=bm[2].toUpperCase();
+   let body=stripMeta(bm[3]); const meta=metaFor(bm[3]);
+   if(!body || looksLikeHeader(body)) continue;
+   const prefix=part+'. ';
+   const exists=data.sections[1].questions.some(q=>q.number===n && new RegExp('^'+part+'\\.\\s','i').test(q.question||''));
+   if(!exists) data.sections[1].questions.push({number:n,question:prefix+body,co:meta.co,k:meta.k});
+ }
+ // Keep Section B in question-pair order: 11A,11B ... 15A,15B.
+ data.sections[1].questions.sort((a,b)=>{const an=Number(a.number),bn=Number(b.number);if(an!==bn)return an-bn;const pa=/^A\./i.test(a.question||'')?0:/^B\./i.test(a.question||'')?1:2;const pb=/^A\./i.test(b.question||'')?0:/^B\./i.test(b.question||'')?1:2;return pa-pb;});
+ // One last cleanup after global metadata recovery.
+ data.sections.forEach(sec=>sec.questions=sec.questions.map(normalizeExtractedRow));
+ // Do not lose extracted questions: only pad missing rows for the UI.
+ while(data.sections[0].questions.length<10)data.sections[0].questions.push({number:String(data.sections[0].questions.length+1),question:'',co:'',k:''});
+ while(data.sections[1].questions.length<10){const i=data.sections[1].questions.length;data.sections[1].questions.push({number:String(11+Math.floor(i/2)),question:'',co:'',k:''});}
+ while(data.sections[2].questions.length<5){const i=data.sections[2].questions.length;data.sections[2].questions.push({number:String(16+i),question:'',co:'',k:''});}
+ return data;
+}
+async function imageBlobFromPDFPage(page){const viewport=page.getViewport({scale:3});const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport}).promise;const img=ctx.getImageData(0,0,canvas.width,canvas.height);for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const c=Math.max(0,Math.min(255,(g-128)*1.45+128));img.data[i]=img.data[i+1]=img.data[i+2]=c}ctx.putImageData(img,0,0);return new Promise(resolve=>canvas.toBlob(resolve,'image/png'))}
+async function imagePreprocess(file){const bitmap=await createImageBitmap(file);const scale=Math.max(1.5,Math.min(3,2000/Math.max(bitmap.width,bitmap.height)));const canvas=document.createElement('canvas');canvas.width=Math.ceil(bitmap.width*scale);canvas.height=Math.ceil(bitmap.height*scale);const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);const img=ctx.getImageData(0,0,canvas.width,canvas.height);for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const c=Math.max(0,Math.min(255,(g-128)*1.55+128));img.data[i]=img.data[i+1]=img.data[i+2]=c}ctx.putImageData(img,0,0);return new Promise(resolve=>canvas.toBlob(resolve,'image/png'))}
+async function runOCR(image,onProgress){if(!window.Tesseract)throw new Error('OCR engine did not load. Check internet connection and refresh the page.');const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(onProgress&&m.progress)onProgress(m.progress)}});const result=await worker.recognize(image);await worker.terminate();return result.data.text||''}
+async function pdfOCR(file){if(!window.pdfjsLib)throw new Error('PDF reader did not load. Refresh the page and try again.');const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let all='';for(let p=1;p<=pdf.numPages;p++){setStatus('Scanning PDF page '+p+' of '+pdf.numPages+'...');setProgress((p-1)/pdf.numPages*100);const page=await pdf.getPage(p);const blob=await imageBlobFromPDFPage(page);all+='\n'+await runOCR(blob,prog=>setProgress(((p-1)+prog)/pdf.numPages*100))}setProgress(100);return all}
+async function processFile(file){const ext=(file.name.split('.').pop()||'').toLowerCase();if(['jpg','jpeg','png','webp'].includes(ext)){setStatus('Scanning image with OCR...');setProgress(5);const blob=await imagePreprocess(file);const text=await runOCR(blob,setProgress);setProgress(100);return text}if(ext==='pdf')return await pdfOCR(file);if(ext==='docx'){setStatus('Extracting Word document text...');const r=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});return r.value||''}if(ext==='doc'){throw new Error('Old .DOC files cannot be OCR-read reliably in the browser. Save the file as .DOCX or PDF and upload again.');}throw new Error('Unsupported file. Use PDF, DOCX, JPG, JPEG, PNG or WEBP.')}
+document.getElementById('paperFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{document.getElementById('rawBox').style.display='none';const text=await processFile(file);document.getElementById('rawText').value=text;document.getElementById('rawBox').style.display='block';if(!text.trim())throw new Error('No readable text was found. Upload a clearer scan/image or a text-based PDF/DOCX.');const parsed=parseOCR(text);for(const k of ['college_name','date','maximum_marks']){if(parsed[k])document.getElementById(k).value=parsed[k]} if(parsed.duration) document.getElementById('duration').value='3 Hours'; if(cia==='cia1')document.getElementById('exam_name').value='CIA 1'; else if(cia==='cia2')document.getElementById('exam_name').value='CIA 2'; else document.getElementById('exam_name').value='External';renderSections(parsed.sections);window.__lastParsedQuestions=parsed;const counts=parsed.sections.map(x=>x.questions.filter(q=>q.question).length);setStatus('Extraction complete. Detected questions: Section A '+counts[0]+' · Section B '+counts[1]+' · Section C '+counts[2]+'. Please verify before saving.','ok')}catch(err){console.error(err);setProgress(0);setStatus(err.message||'Extraction failed.','error')}})
+async function savePaper(){if(!subjectId){alert('Select an assigned subject first.');return}const data=new FormData();data.append('subject_id',subjectId);data.append('cia',cia);data.append('semester','{{ semester_no|default("") }}');data.append('paper_data',JSON.stringify({college_name:document.getElementById('college_name').value,exam_name:document.getElementById('exam_name').value,department:document.getElementById('department').value,subject_code:document.getElementById('subject_code').value,subject_name:document.getElementById('subject_name').value,date:document.getElementById('date').value,entered_date:document.getElementById('entered_date').value,duration:document.getElementById('duration').value,maximum_marks:document.getElementById('maximum_marks').value,year:document.getElementById('year').value,semester:document.getElementById('semester').value,academic_year:document.getElementById('academic_year').value,sections:collect()}));const f=document.getElementById('paperFile').files[0];if(f)data.append('question_paper',f);try{const r=await fetch('{{ url_for("faculty_question_paper_save") }}',{method:'POST',body:data,credentials:'same-origin'});const j=await r.json();if(!j.success)throw new Error(j.message||'Save failed');alert(j.message);if(j.view_url){location.href=j.view_url}else{location.reload()}}catch(e){alert(e.message)}}
+</script>
+{% endblock %}

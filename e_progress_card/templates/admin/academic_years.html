@@ -1,0 +1,67 @@
+{% extends "admin/_admin_base.html" %}
+{% set title="Academic Year" %}
+{% set page_heading="Academic Year" %}
+{% set page_description="View the active academic year and understand the automatic yearly rollover." %}
+
+{% block content %}
+<div class="academic-year-page">
+  <div class="academic-year-hero">
+    <div class="academic-year-icon"><i class="bi bi-calendar3"></i></div>
+    <div>
+      <span class="academic-eyebrow">ACADEMIC SESSION</span>
+      <h2>{{ active.year_name if active else 'No Active Academic Year' }}</h2>
+      <p>Current academic year used across the E-Progress Card system.</p>
+    </div>
+    <div class="academic-active-badge"><i class="bi bi-check-circle-fill"></i> Active</div>
+  </div>
+
+  <div class="academic-year-grid">
+    <div class="academic-info-card">
+      <div class="academic-card-icon"><i class="bi bi-calendar-check"></i></div>
+      <div>
+        <span>Current Active Year</span>
+        <strong>{{ active.year_name if active else '—' }}</strong>
+        <p>All active academic workflows use this session.</p>
+      </div>
+    </div>
+
+    <div class="academic-info-card">
+      <div class="academic-card-icon"><i class="bi bi-arrow-repeat"></i></div>
+      <div>
+        <span>Automatic Rollover</span>
+        <strong>Every June 1</strong>
+        <p>The system automatically moves to the next academic year.</p>
+      </div>
+    </div>
+
+    <div class="academic-info-card">
+      <div class="academic-card-icon"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <span>Admin Control</span>
+        <strong>System Managed</strong>
+        <p>No manual update is required from the administrator.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="academic-timeline-card">
+    <div class="academic-section-title">
+      <div>
+        <span>HOW IT WORKS</span>
+        <h3>Academic Year Management</h3>
+      </div>
+      <i class="bi bi-info-circle"></i>
+    </div>
+    <div class="academic-steps">
+      <div class="academic-step"><b>01</b><div><strong>Current session</strong><p>The active academic year is displayed here.</p></div></div>
+      <div class="academic-step"><b>02</b><div><strong>June 1 rollover</strong><p>The system automatically activates the next academic year.</p></div></div>
+      <div class="academic-step"><b>03</b><div><strong>Automatic usage</strong><p>Faculty, marks and academic workflows use the active session.</p></div></div>
+    </div>
+  </div>
+
+  <div class="academic-note">
+    <i class="bi bi-lightbulb-fill"></i>
+    <div><strong>No manual action required</strong><p>The academic year is intentionally read-only on this page to keep the system consistent and prevent accidental changes.</p></div>
+  </div>
+</div>
+{% endblock %}

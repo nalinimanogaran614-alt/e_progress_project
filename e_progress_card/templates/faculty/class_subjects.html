@@ -1,0 +1,36 @@
+{% extends "faculty/base.html" %}
+{% block title %}Class Subjects | E-Progress Card{% endblock %}
+{% block extra_css %}
+<style>
+.subject-detail-panel{background:#fff;border:1px solid #e3eaf2;border-radius:16px;box-shadow:var(--faculty-shadow);overflow:hidden}
+.subject-detail-head{padding:20px 22px;border-bottom:1px solid #edf1f5;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.subject-detail-head h2{margin:0;color:#123b78;font-size:19px;font-weight:800}.subject-detail-head p{margin:5px 0 0;color:#7b8999;font-size:11px}
+.subject-row{padding:17px 22px;border-bottom:1px solid #edf1f5;display:grid;grid-template-columns:55px 1fr 130px 120px 150px;gap:14px;align-items:center}.subject-row:last-child{border-bottom:0}
+.subject-row:hover{background:#fbfdff}.subject-num{width:38px;height:38px;border-radius:10px;background:#edf5ff;color:#2865a7;display:grid;place-items:center;font-size:12px;font-weight:800}
+.subject-code{font-size:11px;color:#2865a7;font-weight:800}.subject-name{font-size:15px;color:#123b78;font-weight:800;margin-top:2px}.subject-meta{font-size:10px;color:#7b8999;margin-top:3px}
+@media(max-width:850px){.subject-row{grid-template-columns:45px 1fr;}.subject-row .semester,.subject-row .section,.subject-row .action{grid-column:2}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+    <div><div class="admin-breadcrumb">My Classes / Subjects</div><h1>{{ class_info.class_name if class_info else 'Assigned Class' }}</h1><p>Subjects assigned to you for this class in the active academic year.</p></div>
+    <a href="{{ url_for('faculty_classes') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Back to My Classes</a>
+</div>
+<div class="subject-detail-panel">
+    <div class="subject-detail-head">
+        <div><h2>Faculty · Class · Subject</h2><p>{{ class_info.department_name if class_info else faculty.department_name }} · {{ academic_year.year_name if academic_year else '—' }}</p></div>
+        <span class="status-pill success">ACTIVE YEAR</span>
+    </div>
+    {% for s in subjects %}
+    <div class="subject-row">
+        <div class="subject-num">{{ loop.index }}</div>
+        <div><div class="subject-code">{{ s.subject_code }}</div><div class="subject-name">{{ s.subject_name }}</div><div class="subject-meta">Faculty: {{ faculty.faculty_name }}</div></div>
+        <div class="semester"><span class="status-pill pending">Semester {{ s.semester_no }}</span></div>
+        <div class="section" style="font-size:11px;color:#718096"><strong>Section:</strong> {{ s.section or 'A' }}</div>
+        <div class="action"><a class="btn btn-primary btn-sm w-100" href="{{ url_for('faculty_marks_entry',class_id=class_info.id,semester=s.semester_no,subject_id=s.subject_id) }}"><i class="bi bi-pencil-square me-1"></i> Mark Entry</a></div>
+    </div>
+    {% else %}
+    <div class="faculty-empty">No subjects are assigned to this class.</div>
+    {% endfor %}
+</div>
+{% endblock %}

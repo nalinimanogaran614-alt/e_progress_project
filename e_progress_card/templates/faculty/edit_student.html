@@ -1,0 +1,18 @@
+{% extends "faculty/base.html" %}
+{% block title %}Edit Student | E-Progress Card{% endblock %}
+{% block content %}
+<div class="admin-page-header"><div><span class="admin-breadcrumb">Student Management</span><h1>Edit Student</h1><p>Update student information without changing the system-controlled academic assignment.</p></div><a href="{{ url_for('faculty_students') }}" class="btn btn-light"><i class="bi bi-arrow-left"></i> Back to Students</a></div>
+<div class="form-card">
+<div class="form-section-title"><i class="bi bi-pencil-square"></i> Student Details</div>
+<form method="POST"><div class="row g-4">
+<div class="col-md-6"><label class="form-label">Register Number</label><input class="form-control faculty-readonly" value="{{ student.register_number }}" readonly></div>
+<div class="col-md-6"><label class="form-label">Assigned Class</label><input class="form-control faculty-readonly" value="{{ student.department_name }} - {{ student.class_name }}" readonly></div>
+<div class="col-md-6"><label class="form-label">Student Name <span class="text-danger">*</span></label><input class="form-control" name="student_name" value="{{ student.student_name }}" required></div>
+<div class="col-md-6"><label class="form-label">Username</label><input class="form-control faculty-readonly" value="{{ student.register_number }}" readonly></div>
+<div class="col-md-6"><label class="form-label">Phone Number</label><input class="form-control" name="phone" value="{{ student.phone|default('') }}" maxlength="10" inputmode="numeric"></div>
+<div class="col-md-6"><label class="form-label">Email Address</label><input class="form-control" type="email" name="email" value="{{ student.email|default('') }}"></div>
+<div class="col-md-6"><label class="form-label">Date of Birth <span class="text-danger">*</span></label><input class="form-control" type="date" name="dob" value="{{ student.dob if student.dob else '' }}" required><div class="form-help">Student password is DOB in DD/MM/YYYY format.</div></div>
+</div>
+<div class="assigned-info mt-4"><div class="assigned-icon"><i class="bi bi-lock-fill"></i></div><div><strong>Protected academic fields</strong><p>Register number, department and class cannot be changed from the faculty module.</p></div></div>
+<div class="form-actions"><a href="{{ url_for('faculty_students') }}" class="btn btn-light">Cancel</a><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Save Changes</button></div></form></div>
+{% endblock %}
