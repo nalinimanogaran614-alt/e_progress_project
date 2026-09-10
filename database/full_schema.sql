@@ -1,10 +1,6 @@
 -- E-Progress Card complete database schema.
--- Import with: mysql -u root -p < full_schema.sql
-
-CREATE DATABASE IF NOT EXISTS e_progress_card
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-USE e_progress_card;
+-- Import after selecting the target database, for example:
+-- mysql -u root -p e_progress_card < full_schema.sql
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
