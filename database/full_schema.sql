@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS marks (
     student_id INT NOT NULL,
     subject_id INT NOT NULL,
     internal DECIMAL(6,2) DEFAULT NULL,
-    external DECIMAL(6,2) DEFAULT NULL,
+    `external` DECIMAL(6,2) DEFAULT NULL,
     total DECIMAL(6,2) DEFAULT NULL,
     grade VARCHAR(10) DEFAULT NULL,
     result VARCHAR(20) DEFAULT NULL,
