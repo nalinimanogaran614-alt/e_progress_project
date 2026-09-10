@@ -1249,6 +1249,7 @@ def login():
             )
             user = cursor.fetchone()
         except Exception:
+            app.logger.exception("Database connection failed during login")
             flash("Database connection failed. Check DB_HOST, DB_NAME, DB_USER, and DB_PASSWORD.", "danger")
             return render_template("login.html"), 503
         finally:
