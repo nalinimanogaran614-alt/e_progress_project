@@ -1,6 +1,6 @@
 -- E-Progress Card complete database schema.
--- Import after selecting the target database, for example:
--- mysql -u root -p e_progress_card < full_schema.sql
+-- Import this file into an existing MySQL database named e_progress_card.
+-- Railway already creates the database; do not run CREATE DATABASE/USE there.
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS marks (
     student_id INT NOT NULL,
     subject_id INT NOT NULL,
     internal DECIMAL(6,2) DEFAULT NULL,
-    `external` DECIMAL(6,2) DEFAULT NULL,
+    external DECIMAL(6,2) DEFAULT NULL,
     total DECIMAL(6,2) DEFAULT NULL,
     grade VARCHAR(10) DEFAULT NULL,
     result VARCHAR(20) DEFAULT NULL,
@@ -209,6 +209,26 @@ CREATE TABLE IF NOT EXISTS ep_question_marks (
     choice VARCHAR(5) NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_ep_qmark (student_id, subject_id, academic_year_id, semester_no, exam_type, question_no)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS ep_cia_detail_marks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    faculty_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    academic_year_id INT NOT NULL,
+    semester_no INT NOT NULL,
+    cia VARCHAR(10) NOT NULL,
+    student_id INT NOT NULL,
+    detail_json LONGTEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_ep_cia_detail (faculty_id, subject_id, academic_year_id, semester_no, cia, student_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS ep_bulk_previews (
+    token CHAR(32) PRIMARY KEY,
+    kind VARCHAR(30) NOT NULL,
+    payload LONGTEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 INSERT INTO result_settings (id, visibility)

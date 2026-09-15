@@ -103,6 +103,9 @@ def ensure_application_schema():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("SELECT id FROM users WHERE username=%s LIMIT 1", ("admin",))
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO users(username,password,role) VALUES(%s,%s,%s)", ("admin", generate_password_hash("admin123"), "admin"))
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS departments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -168,7 +171,7 @@ def ensure_application_schema():
                 student_id INT NOT NULL,
                 subject_id INT NOT NULL,
                 internal DECIMAL(6,2) DEFAULT NULL,
-                `external` DECIMAL(6,2) DEFAULT NULL,
+                external DECIMAL(6,2) DEFAULT NULL,
                 total DECIMAL(6,2) DEFAULT NULL,
                 grade VARCHAR(10) DEFAULT NULL,
                 result VARCHAR(20) DEFAULT NULL,
@@ -455,6 +458,22 @@ def ensure_semester_schema():
                 choice VARCHAR(5) NULL,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 UNIQUE KEY uq_ep_qmark (student_id,subject_id,academic_year_id,semester_no,exam_type,question_no)
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ep_cia_detail_marks (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                faculty_id INT NOT NULL, subject_id INT NOT NULL, academic_year_id INT NOT NULL,
+                semester_no INT NOT NULL, cia VARCHAR(10) NOT NULL, student_id INT NOT NULL,
+                detail_json LONGTEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_ep_cia_detail (faculty_id,subject_id,academic_year_id,semester_no,cia,student_id)
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ep_bulk_previews (
+                token CHAR(32) PRIMARY KEY, kind VARCHAR(30) NOT NULL, payload LONGTEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         for ctype, count in (("UG", 6), ("PG", 4)):
@@ -1249,7 +1268,6 @@ def login():
             )
             user = cursor.fetchone()
         except Exception:
-            app.logger.exception("Database connection failed during login")
             flash("Database connection failed. Check DB_HOST, DB_NAME, DB_USER, and DB_PASSWORD.", "danger")
             return render_template("login.html"), 503
         finally:
@@ -1811,6 +1829,26 @@ def _validate_faculty_bulk(conn, rows):
         return out
     finally:
         cur.close()
+def _save_bulk_preview(token,kind,payload):
+    conn=get_db_connection(); cur=conn.cursor()
+    try:
+        cur.execute("INSERT INTO ep_bulk_previews(token,kind,payload) VALUES(%s,%s,%s) ON DUPLICATE KEY UPDATE kind=VALUES(kind),payload=VALUES(payload),created_at=CURRENT_TIMESTAMP",(token,kind,json.dumps(payload,ensure_ascii=False)))
+        conn.commit()
+    finally: cur.close(); conn.close()
+
+def _load_bulk_preview(token,kind):
+    conn=get_db_connection(); cur=conn.cursor(dictionary=True)
+    try:
+        cur.execute("SELECT payload FROM ep_bulk_previews WHERE token=%s AND kind=%s",(token,kind)); row=cur.fetchone()
+        return json.loads(row['payload']) if row else None
+    finally: cur.close(); conn.close()
+
+def _delete_bulk_preview(token):
+    conn=get_db_connection(); cur=conn.cursor()
+    try:
+        cur.execute("DELETE FROM ep_bulk_previews WHERE token=%s",(token,)); conn.commit()
+    finally: cur.close(); conn.close()
+
 def _bulk_upload_dir():
     path = os.path.join(tempfile.gettempdir(), 'e_progress_card_faculty_bulk')
     os.makedirs(path, exist_ok=True)
@@ -1932,8 +1970,7 @@ def faculty_bulk_upload():
         conn=get_db_connection()
         try: preview=_validate_faculty_bulk(conn,rows)
         finally: conn.close()
-        preview_path=os.path.join(_bulk_upload_dir(),token+'.json')
-        with open(preview_path,'w',encoding='utf-8') as fh: json.dump(preview,fh,ensure_ascii=False)
+        _save_bulk_preview(token,'faculty',preview)
         session['faculty_bulk_token']=token
         return render_template('admin/faculty_bulk_preview.html',rows=preview,token=token)
     except Exception as e:
@@ -1947,9 +1984,9 @@ def faculty_bulk_confirm():
     token=request.form.get('token','').strip()
     if not token or token != session.get('faculty_bulk_token') or not re.fullmatch(r'[a-f0-9]{32}',token):
         flash('Bulk upload session expired. Please upload the Excel file again.','danger'); return redirect(url_for('add_faculty'))
-    preview_path=os.path.join(_bulk_upload_dir(),token+'.json')
     try:
-        with open(preview_path,'r',encoding='utf-8') as fh: preview=json.load(fh)
+        preview=_load_bulk_preview(token,'faculty')
+        if preview is None: raise ValueError('missing preview')
     except Exception:
         flash('Bulk upload preview expired. Please upload the Excel file again.','danger'); return redirect(url_for('add_faculty'))
     conn=get_db_connection(); success=0; failed=[]
@@ -2400,8 +2437,7 @@ def student_bulk_upload():
         conn=get_db_connection()
         try: preview,dept_row,class_row,batch,context=_validate_student_bulk(conn,rows,int(dept),int(cls))
         finally: conn.close()
-        preview_path=os.path.join(_student_bulk_dir(),token+'.json')
-        with open(preview_path,'w',encoding='utf-8') as fh: json.dump({'rows':preview,'department_id':int(dept),'class_id':int(cls),'department_name':dept_row['department_name'],'class_name':class_row['class_name'],'batch':context['batch'],'academic_year':context['academic_year'],'year_label':context['year_label']},fh,ensure_ascii=False)
+        _save_bulk_preview(token,'student',{'rows':preview,'department_id':int(dept),'class_id':int(cls),'department_name':dept_row['department_name'],'class_name':class_row['class_name'],'batch':context['batch'],'academic_year':context['academic_year'],'year_label':context['year_label']})
         session['student_bulk_token']=token
         return render_template('admin/student_bulk_preview.html',rows=preview,token=token,department_name=dept_row['department_name'],class_name=class_row['class_name'],academic_batch=context['batch'],academic_year=context['academic_year'],year_label=context['year_label'])
     except Exception as e:
@@ -2414,9 +2450,9 @@ def student_bulk_confirm():
     token=request.form.get('token','').strip()
     if not token or token!=session.get('student_bulk_token') or not re.fullmatch(r'[a-f0-9]{32}',token):
         flash('Student bulk upload session expired. Please upload the Excel file again.','danger'); return redirect(url_for('add_student'))
-    preview_path=os.path.join(_student_bulk_dir(),token+'.json')
     try:
-        with open(preview_path,'r',encoding='utf-8') as fh: data=json.load(fh)
+        data=_load_bulk_preview(token,'student')
+        if data is None: raise ValueError('missing preview')
     except Exception:
         flash('Student bulk preview expired. Please upload the Excel file again.','danger'); return redirect(url_for('add_student'))
     conn=get_db_connection(); success=0; failed=[]
@@ -2646,8 +2682,7 @@ def subject_bulk_upload():
         conn=get_db_connection()
         try: preview=_validate_subject_bulk(conn,rows)
         finally: conn.close()
-        preview_path=os.path.join(_subject_bulk_dir(),token+'.json')
-        with open(preview_path,'w',encoding='utf-8') as fh: json.dump({'rows':preview},fh,ensure_ascii=False)
+        _save_bulk_preview(token,'subject',{'rows':preview})
         session['subject_bulk_token']=token
         return render_template('admin/subject_bulk_preview.html',rows=preview,token=token)
     except Exception as e:
@@ -2662,9 +2697,9 @@ def subject_bulk_confirm():
     token=request.form.get('token','').strip()
     if not token or token!=session.get('subject_bulk_token') or not re.fullmatch(r'[a-f0-9]{32}',token):
         flash('Subject bulk upload session expired. Please upload the Excel file again.','danger'); return redirect(url_for('subjects'))
-    preview_path=os.path.join(_subject_bulk_dir(),token+'.json')
     try:
-        with open(preview_path,'r',encoding='utf-8') as fh: data=json.load(fh)
+        data=_load_bulk_preview(token,'subject')
+        if data is None: raise ValueError('missing preview')
     except Exception:
         flash('Subject bulk preview expired. Please upload the Excel file again.','danger'); return redirect(url_for('subjects'))
     conn=get_db_connection(); success=0; failed=[]
@@ -4059,19 +4094,44 @@ def _cia_detail_json_path(faculty_id, subject_id, cia, academic_year_id=None, se
         _question_paper_file_key(faculty_id, subject_id, cia, academic_year_id, semester_no) + "_marks.json"
     )
 def _load_cia_detail_marks(faculty_id, subject_id, cia, academic_year_id=None, semester_no=None):
-    path = _cia_detail_json_path(faculty_id, subject_id, cia, academic_year_id, semester_no)
-    if not os.path.exists(path):
-        return {}
+    if academic_year_id and semester_no is not None:
+        conn=cur=None
+        try:
+            conn=get_db_connection(); cur=conn.cursor(dictionary=True)
+            cur.execute("SELECT student_id,detail_json FROM ep_cia_detail_marks WHERE faculty_id=%s AND subject_id=%s AND academic_year_id=%s AND semester_no=%s AND cia=%s",(faculty_id,subject_id,academic_year_id,semester_no,cia))
+            result={}
+            for row in cur.fetchall() or []:
+                try:
+                    value=json.loads(row.get('detail_json') or '{}')
+                    if isinstance(value,dict): result[str(row['student_id'])]=value
+                except Exception: pass
+            if result: return result
+        except Exception: pass
+        finally:
+            try:
+                if cur: cur.close()
+            except Exception: pass
+            try:
+                if conn: conn.close()
+            except Exception: pass
+    path=_cia_detail_json_path(faculty_id,subject_id,cia,academic_year_id,semester_no)
+    if not os.path.exists(path): return {}
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, dict) else {}
-    except (OSError, json.JSONDecodeError):
-        return {}
+        with open(path,'r',encoding='utf-8') as f: data=json.load(f)
+        return data if isinstance(data,dict) else {}
+    except (OSError,json.JSONDecodeError): return {}
+
 def _save_cia_detail_marks(faculty_id, subject_id, cia, data, academic_year_id=None, semester_no=None):
-    path = _cia_detail_json_path(faculty_id, subject_id, cia, academic_year_id, semester_no)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    if not (academic_year_id and semester_no is not None): return
+    conn=get_db_connection(); cur=conn.cursor()
+    try:
+        for student_id,detail in (data or {}).items():
+            cur.execute("""INSERT INTO ep_cia_detail_marks(faculty_id,subject_id,academic_year_id,semester_no,cia,student_id,detail_json)
+                VALUES(%s,%s,%s,%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE detail_json=VALUES(detail_json),updated_at=CURRENT_TIMESTAMP""",
+                (faculty_id,subject_id,academic_year_id,semester_no,cia,int(student_id),json.dumps(detail,ensure_ascii=False)))
+        conn.commit()
+    finally: cur.close(); conn.close()
 def _cia_total_from_questions(detail):
     """Return raw CIA total /75 from 10×2 + 5×5 + exactly 3 of 5×10."""
     if not isinstance(detail, dict):
@@ -4976,30 +5036,21 @@ def faculty_question_paper_save():
         data["entered_date"]=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data["exam_name"]={"cia1":"CIA 1","cia2":"CIA 2","external":"External"}[cia]
         data["saved_at"] = datetime.now().isoformat(timespec="seconds")
-        upload = request.files.get("question_paper")
+        upload=request.files.get("question_paper")
+        original_name=""
         if upload and upload.filename:
-            safe = secure_filename(upload.filename)
-            ext = os.path.splitext(safe)[1].lower()
-            if ext not in {".png", ".jpg", ".jpeg", ".webp", ".pdf", ".doc", ".docx"}:
-                return jsonify({"success": False, "message": "Upload PNG, JPG, WEBP, PDF, DOC or DOCX only."}), 400
-            filename = _question_paper_file_key(faculty["faculty_id"], subject_id, cia, data.get("academic_year_id"), data.get("semester_no")) + ext
-            upload.save(os.path.join(QUESTION_PAPER_DIR, filename))
-            data["original_file"] = url_for(
-                "static",
-                filename=f"uploads/question_papers/{filename}"
-            )
-        with open(
-            _question_paper_json_path(faculty["faculty_id"], subject_id, cia, data.get("academic_year_id"), data.get("semester_no")),
-            "w",
-            encoding="utf-8"
-        ) as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            safe=secure_filename(upload.filename); ext=os.path.splitext(safe)[1].lower()
+            if ext not in {".png",".jpg",".jpeg",".webp",".pdf",".doc",".docx"}:
+                return jsonify({"success":False,"message":"Upload PNG, JPG, WEBP, PDF, DOC or DOCX only."}),400
+            original_name=safe; data["original_file_name"]=safe
         conn2=get_db_connection(); cur2=conn2.cursor()
         try:
-            cur2.execute("""INSERT INTO ep_question_papers(faculty_id,subject_id,academic_year_id,semester_no,cia,file_path,paper_json) VALUES(%s,%s,%s,%s,%s,%s,%s) ON DUPLICATE KEY UPDATE file_path=VALUES(file_path),paper_json=VALUES(paper_json),created_at=CURRENT_TIMESTAMP""",(faculty["faculty_id"],subject_id,data.get("academic_year_id") or 0,data.get("semester_no") or 0,cia,data.get("original_file"),json.dumps(data,ensure_ascii=False)))
+            cur2.execute("""INSERT INTO ep_question_papers(faculty_id,subject_id,academic_year_id,semester_no,cia,file_path,paper_json)
+                VALUES(%s,%s,%s,%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE file_path=VALUES(file_path),paper_json=VALUES(paper_json),created_at=CURRENT_TIMESTAMP""",
+                (faculty["faculty_id"],subject_id,data.get("academic_year_id") or 0,data.get("semester_no") or 0,cia,original_name,json.dumps(data,ensure_ascii=False)))
             conn2.commit()
-        finally:
-            cur2.close(); conn2.close()
+        finally: cur2.close(); conn2.close()
         return jsonify({"success": True, "message": f"{cia.upper()} question paper saved successfully.", "view_url": url_for("faculty_question_paper", subject_id=subject_id, cia=cia, semester=data.get("semester_no"), view=1)})
     except (ValueError, json.JSONDecodeError) as e:
         return jsonify({"success": False, "message": str(e)}), 400
